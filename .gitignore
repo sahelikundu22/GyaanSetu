@@ -1,0 +1,54 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environment
+venv/
+env/
+ENV/
+.venv/
+
+# Streamlit
+.streamlit/
+.streamlit/secrets.toml
+
+# Database Files
+*.db
+*.sqlite3
+
+# Audio / Video Files
+*.mp3
+*.wav
+*.m4a
+*.webm
+*.mp4
+
+# Whisper Model Cache
+.cache/
+*.pt
+
+# Logs
+*.log
+
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# VS Code
+.vscode/
+
+# PyCharm
+.idea/
+
+# Build / Distribution
+build/
+dist/
+*.egg-info/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Environment Variables
+.env
