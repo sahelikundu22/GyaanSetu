@@ -103,7 +103,7 @@ def signup():
         if st.button("Verify OTP"):
             if user_otp == st.session_state.generated_otp:
 
-                if insert_user(name, email):
+                if insert_user(name, email, user_class):
                     st.success("Registration Successful")
                     st.session_state.auth_mode = "login"
                 else:

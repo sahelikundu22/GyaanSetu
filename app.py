@@ -1,6 +1,7 @@
 import streamlit as st
 from database import init_db
-from auth import signup, login, auth_dialog
+from auth import auth_dialog
+from dashboard import dashboard
 
 st.set_page_config(
     page_title="GyaanSetu",
@@ -40,12 +41,14 @@ if not st.session_state.logged_in:
         placeholder="https://www.youtube.com/watch?v=..."
     )
 
-    if st.button("Generate Transcript"):
-        if youtube_url:
-            st.write("Processing:", youtube_url)
-            # fn call
-        else:
-            st.warning("Please enter a YouTube URL")
+    col1, col2, col3 = st.columns([3, 1, 3])
+    with col2:
+        if st.button("Generate Transcript"):
+            if youtube_url:
+                st.write("Processing:", youtube_url)
+                # fn call
+            else:
+                st.warning("Please enter a YouTube URL")
 
     st.divider()
 
@@ -57,26 +60,13 @@ if not st.session_state.logged_in:
         """, unsafe_allow_html=True)
 
 
-    if st.button("Sign Up/ Login"):
-        auth_dialog()
+    col1, col2, col3 = st.columns([3, 1, 3])
 
+    with col2:
+        if st.button("Sign Up / Login", use_container_width=True):
+            auth_dialog()
 
 
 # Dashboard 
 else:
-    st.markdown(
-            "<h1 style='text-align:center;'>Dashboard</h1>",
-            unsafe_allow_html=True
-        )
-
-    st.write("### Dashboard")
-    st.write("Name:", st.session_state.name)
-    st.write("Email:", st.session_state.email)
-    st.write("Class:", st.session_state.user_class)
-    st.write("Points:", st.session_state.points)
-
-    st.divider()
-
-    if st.button("Logout"):
-        st.session_state.logged_in = False
-        st.rerun() 
+    dashboard()
