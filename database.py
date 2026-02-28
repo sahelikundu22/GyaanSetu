@@ -11,6 +11,7 @@ def init_db():
                    id INTEGER PRIMARY KEY AUTOINCREMENT,
                    name TEXT NOT NULL,
                    email TEXT UNIQUE NOT NULL,
+                   user_class TEXT,
                    points INTEGER DEFAULT 0)
                    """)
     
@@ -18,14 +19,14 @@ def init_db():
     connection.close()
 
 
-def insert_user(name, email):
+def insert_user(name, email, user_class):
     connection = sqlite3.connect(DB_NAME)
     cursor = connection.cursor()
 
     try:
         cursor.execute(
-            "INSERT INTO users (name, email, points) VALUES (?, ?, ?)",
-            (name, email, 0)
+            "INSERT INTO users (name, email, user_class, points) VALUES (?, ?, ?, ?)",
+            (name, email, user_class, 0)
         )
         connection.commit()
         return True

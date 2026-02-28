@@ -30,7 +30,7 @@ def send_otp_email(receive_email, otp):
 
 
 # SIGN UP
-@st.dialog("Sign up")
+# @st.dialog("Sign up")
 
 def signup():
 
@@ -44,6 +44,10 @@ def signup():
     name = st.text_input("Name")
     email = st.text_input("Email")
     # password = st.text_input("Password", type="password")
+    user_class = st.selectbox(
+    "Class",
+    ["5", "6", "7", "8"],
+)
 
 
     if not st.session_state.otp_sent:
@@ -93,7 +97,6 @@ def signup():
         "Enter OTP",
         min_value=100000,
         max_value=999999,
-        step=1,
         format="%d"
     )
 
@@ -102,14 +105,20 @@ def signup():
 
                 if insert_user(name, email):
                     st.success("Registration Successful")
+                    st.session_state.auth_mode = "login"
                 else:
                     st.warning("Email already registered")
 
                 st.session_state.otp_sent = False
+
+                # Reset signup state
+                st.session_state.otp_sent = False
+                st.session_state.generated_otp = None
                 
             else:
                 st.error("Invalid OTP")
 
+            
 
             # # password validation
             # errors = []
@@ -150,7 +159,7 @@ def signup():
 
 
 # LOGIN
-@st.dialog("Login")
+# @st.dialog("Login")
 
 def login():
     email = st.text_input("Email")
@@ -162,9 +171,42 @@ def login():
             st.session_state.logged_in = True
             st.session_state.name = user[1]
             st.session_state.email = user[2]
-            st.session_state.points = user[3]
+            st.session_state.user_class = user[3]
+            st.session_state.points = user[4]
             st.success("Login successful")
             st.rerun()
 
         else:
             st.error("User not found")
+
+
+
+# SINGLE AUTH DIALOG
+@st.dialog("Welcome to GyaanSetu")
+def auth_dialog():
+
+    if "auth_mode" not in st.session_state:
+        st.session_state.auth_mode = "login"
+
+    col1, col2, col3 = st.columns([1, 0.2, 1])
+    
+    with col1:
+        if st.button("Login", use_container_width=True):
+            st.session_state.auth_mode = "login"
+    
+    with col2:
+        st.write("|")
+    
+    with col3:
+        if st.button("Sign Up", use_container_width=True):
+            st.session_state.auth_mode = "signup"
+
+    st.divider()
+
+    # Auth forms based on current mode
+    if st.session_state.auth_mode == "login":
+        st.subheader("Login")
+        login()
+    else:
+        st.subheader("Sign Up")
+        signup()
