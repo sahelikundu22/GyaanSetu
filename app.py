@@ -1,76 +1,54 @@
 import streamlit as st
-import yt_dlp
-import whisper
-import os
-import uuid
+from database import init_db
+from auth import signup, login
 
-st.set_page_config(
-    page_title="SmartLearn AI",
-    page_icon="🎥",
-    layout="wide"
-)
+# Initialize database
+init_db()
 
-# UI HEADER
-st.markdown(
-    "<h1 style='text-align:center;'>🎥 SmartLearn AI</h1>",
-    unsafe_allow_html=True
-)
+st.title("GyaanSetu")
 
-st.markdown(
-    "<h4 style='text-align:center; color:gray;'>Convert YouTube Videos into Transcripts</h4>",
-    unsafe_allow_html=True
-)
+# col1, col2 = st.columns(2)
 
-st.divider()
+# if col1.button("Sign Up"):
+#     signup()
 
-# INPUT
-youtube_url = st.text_input(
-    "🔗 Enter YouTube URL",
-    placeholder="https://www.youtube.com/watch?v=..."
-)
+# if col2.button("Login"):
+#     login()
 
-generate = st.button("🚀 Generate Transcript")
 
-# FUNCTIONS
-def download_audio(url, filename):
-    ydl_opts = {
-        "format": "bestaudio/best",
-        "outtmpl": filename,
-        "quiet": True
-    }
-    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        ydl.download([url])
+# toggle
+if "mode" not in st.session_state:
+    st.session_state.mode = "login"
 
-def transcribe_audio(file_path):
-    model = whisper.load_model("tiny")  # tiny = faster on CPU
-    result = model.transcribe(file_path)
-    return result["text"]
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
 
-# TRANSCRIPT LOGIC
-if generate:
 
-    if not youtube_url.strip():
-        st.warning("Please enter a valid YouTube URL.")
-        st.stop()
+if st.button(
+    "Switch to Sign Up " if st.session_state.mode == "login" else "Switch to Login"
+):
+    if st.session_state.mode == "login":
+        st.session_state.mode = "signup"
+    else:
+        st.session_state.mode = "login"
+    st.rerun()
 
-    video_id = str(uuid.uuid4())
-    audio_file = f"{video_id}.mp3"
 
-    with st.spinner("📥 Downloading audio..."):
-        download_audio(youtube_url, audio_file)
+if st.session_state.mode == "signup":
+    st.subheader("Sign Up")
+    signup()
+else:
+    st.subheader("Login")
+    login()
 
-    if not os.path.exists(audio_file):
-        st.error("Audio download failed.")
-        st.stop()
 
-    with st.spinner("🧠 Transcribing... please wait"):
-        transcript = transcribe_audio(audio_file)
+# Dashboard 
+if "logged_in" in st.session_state and st.session_state.logged_in:
+    st.write("### Dashboard")
+    st.write("Name:", st.session_state.name)
+    st.write("Email:", st.session_state.email)
+    st.write("Points:", st.session_state.points)
 
-    st.success("✅ Transcription Completed!")
+    if st.button("Logout"):
+        st.session_state.logged_in = False
 
-    st.subheader("📄 Transcript")
-
-    st.text_area("", transcript, height=400)
-
-    # cleanup
-    os.remove(audio_file)
