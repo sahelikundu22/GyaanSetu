@@ -36,7 +36,7 @@ QUIZ_DATA = {
         ]
     },
 
-    "Algebra": {
+    "Maths": {
         "Linear Equations": [
             {
                 "question": "What is the degree of a linear equation?",

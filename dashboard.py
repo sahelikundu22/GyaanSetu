@@ -79,8 +79,8 @@ from quiz import start_quiz
 
 # Dummy chapter data (can be replaced with DB later)
 CHAPTERS = {
-    "Algebra": ["Linear Equations", "Quadratic Equations"],
-    "Geometry": ["Triangles", "Circles"],
+    "Maths": ["Linear Equations", "Quadratic Equations"],
+    "English": ["Triangles", "Circles"],
     "Science": ["Motion", "Force"]
 }
 
