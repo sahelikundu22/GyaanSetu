@@ -129,7 +129,7 @@ def dashboard():
     if not st.session_state.quiz_started:
         if st.button("Start Quiz"):
             st.session_state.quiz_started = True
-            #st.rerun()
+            st.rerun()
 
     # ---------------- QUIZ (FORM – IMPORTANT) ----------------
     if st.session_state.quiz_started:

@@ -37,7 +37,7 @@ def start_quiz():
     for i, q in enumerate(QUIZ):
         st.write(f"Q{i+1}. {q['question']}")
 
-        st.session_state.answers[i] = st.radio(
+        st.session_state.answers[i] = st.selectbox(
             label="Select an option",
             options=q["options"],
             index=None,                 
