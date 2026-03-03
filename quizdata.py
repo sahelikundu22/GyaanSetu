@@ -2,7 +2,7 @@ QUIZ_DATA = {
     "Science": {
         "Motion": [
             {
-                "question": "What is motion?",
+                "question": "1. What is motion?",
                 "options": [
                     "Change in shape",
                     "Change in position with time",
@@ -12,7 +12,7 @@ QUIZ_DATA = {
                 "answer": "Change in position with time"
             },
             {
-                "question": "Which is an example of motion?",
+                "question": "2. Which is an example of motion?",
                 "options": [
                     "Sleeping person",
                     "Parked car",
@@ -20,6 +20,16 @@ QUIZ_DATA = {
                     "Closed door"
                 ],
                 "answer": "Moving bus"
+            },
+            {
+                "question": "3. Which of the following was used as a means of transport in ancient times?",
+                "options": [
+                    "Aeroplane",
+                    "Bullock Cart",
+                    "Electric train",
+                    "Rocket"
+                ],
+                "answer": "Bullock Cart"
             }
         ],
         "Force": [
