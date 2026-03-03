@@ -60,6 +60,12 @@ def dashboard():
 
     st.divider()
 
+    if "quiz_started" not in st.session_state:
+        st.session_state.quiz_started = False
+
     if st.button("Start Quiz", use_container_width=True):
         st.success(f"Starting Quiz for {selected_module}")
+        st.session_state.quiz_started = True
+
+    if st.session_state.quiz_started:
         start_quiz()

@@ -1,24 +1,25 @@
 import streamlit as st
-from quiz_data import QUIZ
+from quizdata import QUIZ
 
 def start_quiz():
     st.subheader("📝 Motion – Quiz")
 
-    score = 0
-    answers = {}
+    if "answers" not in st.session_state:
+        st.session_state.answers = {}
 
     for i, q in enumerate(QUIZ):
         st.write(f"Q{i+1}. {q['question']}")
 
-        answers[i] = st.radio(
+        st.session_state.answers[i] = st.radio(
             label="Choose one:",
             options=q["options"],
             key=f"question_{i}"
         )
 
     if st.button("Submit Quiz"):
+        score = 0
         for i, q in enumerate(QUIZ):
-            if answers[i] == q["answer"]:
+            if st.session_state.answers[i] == q["answer"]:
                 score += 1
 
         st.success(f"Your score: {score} / {len(QUIZ)}")
