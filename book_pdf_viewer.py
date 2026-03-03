@@ -2,7 +2,7 @@ import streamlit as st
 import os
 import base64
 
-BASE_DIR = "study_books"
+BASE_DIR = "studymaterial"
 
 def show_book_pdf(subject, chapter):
     st.subheader(f"📘 {subject} – {chapter}")
