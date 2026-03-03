@@ -1,5 +1,7 @@
 import streamlit as st
+from quiz import start_quiz
 
+    
 # Dummy Data --- Replace it by DB/ JSON
 CHAPTERS = {
     "Algebra": ["Linear Equations", "Quadratic Equations"],
@@ -60,4 +62,4 @@ def dashboard():
 
     if st.button("Start Quiz", use_container_width=True):
         st.success(f"Starting Quiz for {selected_module}")
-        # quiz function call
+        start_quiz()
