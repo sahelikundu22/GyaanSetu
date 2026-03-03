@@ -77,6 +77,7 @@ def dashboard():
 import streamlit as st
 from quiz import start_quiz
 
+# Dummy chapter data (can be replaced with DB later)
 CHAPTERS = {
     "Algebra": ["Linear Equations", "Quadratic Equations"],
     "Geometry": ["Triangles", "Circles"],
@@ -85,64 +86,77 @@ CHAPTERS = {
 
 def dashboard():
 
-    # ---------------- SESSION INIT ----------------
+    # ---------------- SESSION STATE INIT ----------------
     if "quiz_started" not in st.session_state:
         st.session_state.quiz_started = False
+
+    if "answers" not in st.session_state:
+        st.session_state.answers = {}
 
     # ---------------- SIDEBAR ----------------
     with st.sidebar:
         st.title("📚 GyaanSetu")
 
+        st.markdown("---")
+        st.write("**User Info**")
         st.write("Name:", st.session_state.name)
         st.write("Class:", st.session_state.user_class)
         st.write("Points:", st.session_state.points)
 
-        st.divider()
+        st.markdown("---")
 
-        selected_chapter = st.radio(
+        selected_chapter = st.selectbox(
             "Select Chapter",
             list(CHAPTERS.keys()),
-            key="chapter_radio"
+            key="sidebar_chapter"
         )
 
-        selected_module = st.radio(
+        selected_module = st.selectbox(
             "Select Module",
             CHAPTERS[selected_chapter],
-            key="module_radio"
+            key="sidebar_module"
         )
 
-        st.divider()
+        st.markdown("---")
 
-        if st.button("Logout"):
+        if st.button("Logout", use_container_width=True):
             st.session_state.logged_in = False
             st.session_state.quiz_started = False
+            st.session_state.answers = {}
             st.rerun()
 
-    # ---------------- MAIN PAGE ----------------
-    st.title("Dashboard")
-    st.write(f"Welcome, **{st.session_state.name}**")
-    st.write("Selected Module:", selected_module)
+    # ---------------- MAIN CONTENT ----------------
+    st.markdown(
+        "<h1 style='text-align:center;'>Dashboard</h1>",
+        unsafe_allow_html=True
+    )
+
+    st.write(f"### Welcome, {st.session_state.name}")
+    st.write("Class:", st.session_state.user_class)
+    st.write("Points:", st.session_state.points)
 
     st.divider()
 
-    # ---------------- START QUIZ ----------------
+    st.subheader("Selected Path")
+    st.write(f"**Chapter:** {selected_chapter}")
+    st.write(f"**Module:** {selected_module}")
+
+    st.divider()
+
+    # ---------------- QUIZ CONTROLS ----------------
     if not st.session_state.quiz_started:
-        if st.button("Start Quiz"):
+        if st.button("Start Quiz", use_container_width=True):
             st.session_state.quiz_started = True
+            st.session_state.answers = {}
             st.rerun()
 
-    # ---------------- QUIZ (FORM – IMPORTANT) ----------------
+    # ---------------- QUIZ AREA ----------------
     if st.session_state.quiz_started:
-        st.subheader("📝 Quiz")
+        start_quiz()
 
-        with st.form("quiz_form"):
-            start_quiz()
-            submitted = st.form_submit_button("Submit Quiz")
+        st.divider()
 
-        if submitted:
-            st.success("Quiz submitted successfully 🎉")
-
-            if st.button("End Quiz"):
-                st.session_state.quiz_started = False
-                st.session_state.answers = {}
-                st.rerun()
+        if st.button("End Quiz", use_container_width=True):
+            st.session_state.quiz_started = False
+            st.session_state.answers = {}
+            st.rerun()

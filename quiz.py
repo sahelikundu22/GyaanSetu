@@ -29,7 +29,7 @@ import streamlit as st
 from quizdata import QUIZ
 
 def start_quiz():
-    st.subheader("📝 Motion Quiz")
+    st.subheader("📝 Motion – Quiz")
 
     if "answers" not in st.session_state:
         st.session_state.answers = {}
@@ -37,17 +37,21 @@ def start_quiz():
     for i, q in enumerate(QUIZ):
         st.write(f"Q{i+1}. {q['question']}")
 
-        st.session_state.answers[i] = st.selectbox(
-            label="Select an option",
-            options=q["options"],
-            index=None,                 
+        options = ["-- Select an answer --"] + q["options"]
+
+        choice = st.selectbox(
+            "Choose your answer",
+            options,
             key=f"quiz_q_{i}"
         )
 
-    if st.button("Submit Quiz", key="submit_quiz"):
+        if choice != "-- Select an answer --":
+            st.session_state.answers[i] = choice
+
+    if st.button("Submit Quiz"):
         score = 0
         for i, q in enumerate(QUIZ):
             if st.session_state.answers.get(i) == q["answer"]:
                 score += 1
 
-        st.success(f"Score: {score} / {len(QUIZ)}")
+        st.success(f"Your score: {score} / {len(QUIZ)}")
