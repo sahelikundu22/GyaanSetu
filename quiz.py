@@ -1,15 +1,19 @@
 import streamlit as st
-from quizdata import QUIZ
+from quizdata import QUIZ_DATA
 
-def start_quiz():
-    st.subheader("📝 Motion – Quiz")
+def start_quiz(subject, chapter):
+    st.subheader(f"📝 {subject} – {chapter} Quiz")
 
-    # Initialize answers dict once
+    questions = QUIZ_DATA.get(subject, {}).get(chapter, [])
+
+    if not questions:
+        st.warning("No quiz available for this chapter.")
+        return
+
     if "answers" not in st.session_state:
         st.session_state.answers = {}
 
-    # Render questions
-    for i, q in enumerate(QUIZ):
+    for i, q in enumerate(questions):
         st.markdown(f"**Q{i+1}. {q['question']}**")
 
         options = ["-- Select an answer --"] + q["options"]
@@ -17,27 +21,19 @@ def start_quiz():
         selected = st.selectbox(
             "Choose your answer",
             options,
-            key=f"quiz_q_{i}"
+            key=f"{subject}_{chapter}_q{i}"
         )
 
-        # Save only valid answers
         if selected != "-- Select an answer --":
             st.session_state.answers[i] = selected
 
     st.divider()
 
-    # Submit button
-    if st.button("Submit Quiz", key="submit_quiz"):
+    if st.button("Submit Quiz"):
         score = 0
-        unanswered = 0
 
-        for i, q in enumerate(QUIZ):
-            if i not in st.session_state.answers:
-                unanswered += 1
-            elif st.session_state.answers[i] == q["answer"]:
+        for i, q in enumerate(questions):
+            if st.session_state.answers.get(i) == q["answer"]:
                 score += 1
 
-        if unanswered > 0:
-            st.warning(f"Please answer all questions ({unanswered} left).")
-        else:
-            st.success(f"✅ Your Score: {score} / {len(QUIZ)}")
+        st.success(f"✅ Your Score: {score} / {len(questions)}")

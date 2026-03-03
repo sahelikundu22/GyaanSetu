@@ -152,7 +152,7 @@ def dashboard():
 
     # ---------------- QUIZ AREA ----------------
     if st.session_state.quiz_started:
-        start_quiz()
+        start_quiz(selected_chapter, selected_module)
 
         st.divider()
 
