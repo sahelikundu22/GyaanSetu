@@ -76,6 +76,7 @@ def dashboard():
 
 import streamlit as st
 from quiz import start_quiz
+from book_pdf_viewer import show_book_pdf
 
 # Dummy chapter data (can be replaced with DB later)
 CHAPTERS = {
@@ -140,6 +141,11 @@ def dashboard():
     st.subheader("Selected Path")
     st.write(f"**Chapter:** {selected_chapter}")
     st.write(f"**Module:** {selected_module}")
+
+    st.divider()
+
+    if st.button("📘 View Book (PDF)", use_container_width=True):
+        show_book_pdf(selected_chapter, selected_module)
 
     st.divider()
 
