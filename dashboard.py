@@ -1,3 +1,4 @@
+"""
 import streamlit as st
 from quiz import start_quiz
 
@@ -8,7 +9,6 @@ CHAPTERS = {
     "Geometry": ["Triangles", "Circles"],
     "Science": ["Motion", "Force"]
 }
-"""
 def dashboard():
 
     with st.sidebar:
