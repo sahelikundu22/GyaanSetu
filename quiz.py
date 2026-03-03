@@ -11,15 +11,15 @@ def start_quiz():
         st.write(f"Q{i+1}. {q['question']}")
 
         st.session_state.answers[i] = st.radio(
-            label="Choose one:",
+            label=q["question"],
             options=q["options"],
-            key=f"question_{i}"
+            key=f"quiz_q_{i}"
         )
 
-    if st.button("Submit Quiz"):
+    if st.button("Submit Quiz", key="submit_quiz"):
         score = 0
         for i, q in enumerate(QUIZ):
-            if st.session_state.answers[i] == q["answer"]:
+            if st.session_state.answers.get(i) == q["answer"]:
                 score += 1
 
         st.success(f"Your score: {score} / {len(QUIZ)}")

@@ -67,5 +67,8 @@ def dashboard():
         st.success(f"Starting Quiz for {selected_module}")
         st.session_state.quiz_started = True
 
+    quiz_container = st.container()
+
     if st.session_state.quiz_started:
-        start_quiz()
+        with quiz_container:
+            start_quiz()
