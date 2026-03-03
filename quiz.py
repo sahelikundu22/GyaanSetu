@@ -1,4 +1,4 @@
-import streamlit as st
+"""import streamlit as st
 from quizdata import QUIZ
 
 def start_quiz():
@@ -23,3 +23,21 @@ def start_quiz():
                 score += 1
 
         st.success(f"Your score: {score} / {len(QUIZ)}")
+"""
+
+import streamlit as st
+from quizdata import QUIZ
+
+def start_quiz():
+
+    if "answers" not in st.session_state:
+        st.session_state.answers = {}
+
+    for i, q in enumerate(QUIZ):
+        st.write(f"Q{i+1}. {q['question']}")
+
+        st.session_state.answers[i] = st.radio(
+            label="Choose one",
+            options=q["options"],
+            key=f"quiz_q_{i}"
+        )

@@ -1,4 +1,4 @@
-"""import streamlit as st
+import streamlit as st
 from quiz import start_quiz
 
     
@@ -8,7 +8,7 @@ CHAPTERS = {
     "Geometry": ["Triangles", "Circles"],
     "Science": ["Motion", "Force"]
 }
-
+"""
 def dashboard():
 
     with st.sidebar:
@@ -73,10 +73,10 @@ def dashboard():
         with quiz_container:
             start_quiz()"""
 
+
 import streamlit as st
 from quiz import start_quiz
 
-# Dummy Data (can be replaced later)
 CHAPTERS = {
     "Algebra": ["Linear Equations", "Quadratic Equations"],
     "Geometry": ["Triangles", "Circles"],
@@ -85,76 +85,64 @@ CHAPTERS = {
 
 def dashboard():
 
-    # -------------------- SESSION STATE INIT --------------------
+    # ---------------- SESSION INIT ----------------
     if "quiz_started" not in st.session_state:
         st.session_state.quiz_started = False
 
-    # -------------------- SIDEBAR --------------------
+    # ---------------- SIDEBAR ----------------
     with st.sidebar:
-        st.title("📚 GyaanSetu 📚")
+        st.title("📚 GyaanSetu")
 
-        st.markdown("---")
-        st.write("**User Info**")
         st.write("Name:", st.session_state.name)
         st.write("Class:", st.session_state.user_class)
         st.write("Points:", st.session_state.points)
 
-        st.markdown("---")
+        st.divider()
 
-        st.subheader("Select Chapter")
         selected_chapter = st.radio(
-            "Chapters",
+            "Select Chapter",
             list(CHAPTERS.keys()),
-            key="sidebar_chapter"
+            key="chapter_radio"
         )
 
-        st.subheader("Select Module")
         selected_module = st.radio(
-            "Modules",
+            "Select Module",
             CHAPTERS[selected_chapter],
-            key="sidebar_module"
+            key="module_radio"
         )
 
-        st.markdown("---")
+        st.divider()
 
-        if st.button("Logout", use_container_width=True):
+        if st.button("Logout"):
             st.session_state.logged_in = False
             st.session_state.quiz_started = False
             st.rerun()
 
-    # -------------------- MAIN DASHBOARD --------------------
-    st.markdown(
-        "<h1 style='text-align:center;'>Dashboard</h1>",
-        unsafe_allow_html=True
-    )
-
-    st.write(f"### Welcome, {st.session_state.name}")
-    st.write("Class:", st.session_state.user_class)
-    st.write("Points:", st.session_state.points)
+    # ---------------- MAIN PAGE ----------------
+    st.title("Dashboard")
+    st.write(f"Welcome, **{st.session_state.name}**")
+    st.write("Selected Module:", selected_module)
 
     st.divider()
 
-    st.subheader("Selected Path")
-    st.write(f"**Chapter:** {selected_chapter}")
-    st.write(f"**Module:** {selected_module}")
-
-    st.divider()
-
-    # -------------------- QUIZ CONTROLS --------------------
+    # ---------------- START QUIZ ----------------
     if not st.session_state.quiz_started:
-        if st.button("Start Quiz", use_container_width=True, key="start_quiz_btn"):
+        if st.button("Start Quiz"):
             st.session_state.quiz_started = True
             st.rerun()
 
-    # -------------------- QUIZ AREA --------------------
+    # ---------------- QUIZ (FORM – IMPORTANT) ----------------
     if st.session_state.quiz_started:
-        quiz_container = st.container()
-        with quiz_container:
+        st.subheader("📝 Quiz")
+
+        with st.form("quiz_form"):
             start_quiz()
+            submitted = st.form_submit_button("Submit Quiz")
 
-        st.divider()
+        if submitted:
+            st.success("Quiz submitted successfully 🎉")
 
-        if st.button("End Quiz", use_container_width=True, key="end_quiz_btn"):
-            st.session_state.quiz_started = False
-            st.session_state.answers = {}
-            st.rerun()
+            if st.button("End Quiz"):
+                st.session_state.quiz_started = False
+                st.session_state.answers = {}
+                st.rerun()
