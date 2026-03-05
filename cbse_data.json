@@ -1,0 +1,82 @@
+{
+  "cbse_curriculum_2024_26": {
+    "class_5": {
+      "subjects": {
+        "EVS": [
+          { "chapter": "Super Senses", "yt": "https://www.youtube.com/watch?v=S01Z-S7S_p4" },
+          { "chapter": "From Tasting to Digesting", "yt": "https://www.youtube.com/watch?v=X03y0DqN_pA" },
+          { "chapter": "Seeds and Seeds", "yt": "https://www.youtube.com/watch?v=MofL-L_tE_o" }
+        ],
+        "Mathematics": [
+          { "chapter": "The Fish Tale", "yt": "https://www.youtube.com/watch?v=5_uWf_9N-qA" },
+          { "chapter": "Shapes and Angles", "yt": "https://www.youtube.com/watch?v=nOqgQ2vLp_s" },
+          { "chapter": "Parts and Wholes", "yt": "https://www.youtube.com/watch?v=p4vWsc6L2gU" }
+        ],
+        "English": [
+          { "chapter": "Ice-cream Man", "yt": "https://www.youtube.com/watch?v=Z6X7e-eK9Xg" },
+          { "chapter": "Wonderful Waste!", "yt": "https://www.youtube.com/watch?v=R_iI5i-nB6M" }
+        ]
+      }
+    },
+    "class_6": {
+      "subjects": {
+        "Science (Curiosity)": [
+          { "chapter": "The Wonderful World of Plants", "yt": "https://www.youtube.com/watch?v=hGqS2Y9T20A" },
+          { "chapter": "Components of Food", "yt": "https://www.youtube.com/watch?v=f25X6XnO93E" },
+          { "chapter": "Exploring Magnets", "yt": "https://www.youtube.com/watch?v=pAnu7X0u-2E" }
+        ],
+        "Mathematics (Ganita Prakash)": [
+          { "chapter": "Patterns in Mathematics", "yt": "https://www.youtube.com/watch?v=N43L5W77C1Y" },
+          { "chapter": "Lines and Angles", "yt": "https://www.youtube.com/watch?v=o2vP_n0u30s" }
+        ],
+        "Social_Science (Exploring Society)": [
+          { "chapter": "India, That Is Bharat", "yt": "https://www.youtube.com/watch?v=680-nO6D080" },
+          { "chapter": "The Family and the Community", "yt": "https://www.youtube.com/watch?v=Kz_T_uN9WbI" }
+        ],
+        "English (Poorvi)": [
+          { "chapter": "A Bottle of Dew", "yt": "https://www.youtube.com/watch?v=H74vS-6R7mI" },
+          { "chapter": "The Neem Baba", "yt": "https://www.youtube.com/watch?v=Vl3zYf7G_fM" }
+        ]
+      }
+    },
+    "class_7": {
+      "subjects": {
+        "Science": [
+          { "chapter": "Nutrition in Plants", "yt": "https://www.youtube.com/watch?v=p4vWsc6L2gU" },
+          { "chapter": "Nutrition in Animals", "yt": "https://www.youtube.com/watch?v=p4vWsc6L2gU" },
+          { "chapter": "Heat", "yt": "https://www.youtube.com/watch?v=H7KzK_8iW5c" },
+          { "chapter": "Acids, Bases and Salts", "yt": "https://www.youtube.com/watch?v=H680fV6m_04" }
+        ],
+        "Mathematics": [
+          { "chapter": "Integers", "yt": "https://www.youtube.com/watch?v=q6O7hIuWfS0" },
+          { "chapter": "Fractions and Decimals", "yt": "https://www.youtube.com/watch?v=H680fV6m_04" },
+          { "chapter": "Data Handling", "yt": "https://www.youtube.com/watch?v=H680fV6m_04" }
+        ],
+        "Social_Science": [
+          { "chapter": "Environment (Geography)", "yt": "https://www.youtube.com/watch?v=6uL46FfC3yI" },
+          { "chapter": "Tracing Changes (History)", "yt": "https://www.youtube.com/watch?v=p-x0iE0W5h0" },
+          { "chapter": "On Equality (Civics)", "yt": "https://www.youtube.com/watch?v=6uL46FfC3yI" }
+        ]
+      }
+    },
+    "class_8": {
+      "subjects": {
+        "Science": [
+          { "chapter": "Crop Production and Management", "yt": "https://www.youtube.com/watch?v=V9X88vX7HFE" },
+          { "chapter": "Microorganisms: Friend and Foe", "yt": "https://www.youtube.com/watch?v=qD9P_u5A66w" },
+          { "chapter": "Coal and Petroleum", "yt": "https://www.youtube.com/watch?v=V9X88vX7HFE" }
+        ],
+        "Mathematics": [
+          { "chapter": "Rational Numbers", "yt": "https://www.youtube.com/watch?v=1V_85T_M5f4" },
+          { "chapter": "Linear Equations in One Variable", "yt": "https://www.youtube.com/watch?v=XzWv_K35_O8" },
+          { "chapter": "Understanding Quadrilaterals", "yt": "https://www.youtube.com/watch?v=1V_85T_M5f4" }
+        ],
+        "Social_Science": [
+          { "chapter": "How, When and Where", "yt": "https://www.youtube.com/watch?v=0h6kX3T9o_M" },
+          { "chapter": "Resources", "yt": "https://www.youtube.com/watch?v=eLw9E6W_8H8" },
+          { "chapter": "The Indian Constitution", "yt": "https://www.youtube.com/watch?v=LqN6_T2-X0k" }
+        ]
+      }
+    }
+  }
+}
