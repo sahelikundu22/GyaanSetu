@@ -1,79 +1,3 @@
-"""
-import streamlit as st
-from quiz import start_quiz
-
-    
-# Dummy Data --- Replace it by DB/ JSON
-CHAPTERS = {
-    "Algebra": ["Linear Equations", "Quadratic Equations"],
-    "Geometry": ["Triangles", "Circles"],
-    "Science": ["Motion", "Force"]
-}
-def dashboard():
-
-    with st.sidebar:
-
-        st.title("📚 GyaanSetu 📚")
-
-        st.markdown("---")
-        st.write("**User Info**")
-        st.write("Name:", st.session_state.name)
-        st.write("Class:", st.session_state.user_class)
-        st.write("Points:", st.session_state.points)
-
-        st.markdown("---")
-
-        st.subheader("Select Chapter")
-        selected_chapter = st.radio(
-            "Chapters",
-            list(CHAPTERS.keys())
-        )
-
-        st.subheader("Select Module")
-        selected_module = st.radio(
-            "Modules",
-            CHAPTERS[selected_chapter]
-        )
-
-        st.markdown("---")
-
-        if st.button("Logout", use_container_width=True):
-            st.session_state.logged_in = False
-            st.rerun()
-
-
-    # main page area
-    st.markdown(
-        "<h1 style='text-align:center;'>Dashboard</h1>",
-        unsafe_allow_html=True
-    )
-
-    st.write(f"### Welcome, {st.session_state.name}")
-    st.write("Class:", st.session_state.user_class)
-    st.write("Points:", st.session_state.points)
-
-    st.divider()
-
-    st.subheader("Selected Path")
-    st.write(f"**Chapter:** {selected_chapter}")
-    st.write(f"**Module:** {selected_module}")
-
-    st.divider()
-
-    if "quiz_started" not in st.session_state:
-        st.session_state.quiz_started = False
-
-    if st.button("Start Quiz", use_container_width=True):
-        st.success(f"Starting Quiz for {selected_module}")
-        st.session_state.quiz_started = True
-
-    quiz_container = st.container()
-
-    if st.session_state.quiz_started:
-        with quiz_container:
-            start_quiz()"""
-
-
 import streamlit as st
 from quiz import start_quiz
 from book_pdf_viewer import show_book_pdf
@@ -93,6 +17,9 @@ def dashboard():
 
     if "answers" not in st.session_state:
         st.session_state.answers = {}
+
+    if "selected_option" not in st.session_state:
+        st.session_state.selected_option = "Study Material"  # initialization
 
     # ---------------- SIDEBAR ----------------
     with st.sidebar:
@@ -214,3 +141,17 @@ def dashboard():
             - The PDF text is segmented into chunks and converted into embeddings, which are stored in a vector database.  
             - For each query, semantic similarity search retrieves the most relevant chunks and Gemini generates a context-aware response.
             """)
+        
+        uploaded_file = st.file_uploader("Upload a pdf ", type=["pdf"])
+
+        if uploaded_file is not None:
+            st.success("PDF uploaded successfully!")
+
+        ques = st.text_input("Ask any quesiton from the PDF content:")
+
+        if st.button("Get Answer", use_container_width=True):
+            if ques:
+                with st.spinner("Finding answer..."):
+                    st.success("Coding of this part is not done yet...")
+            else:
+                st.warning("Please enter a question.")
