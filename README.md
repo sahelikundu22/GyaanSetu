@@ -1,260 +1,70 @@
-# 📚 Digital Learning Platform — Technical Layout & Planning
-
-AI-Powered Rural Education System built using Streamlit, RAG Architecture, and LLMs (Gemini / Ollama)
-
----
-
-## 1️⃣ System Architecture
-
-```
-┌─────────────────────────────────────────────────────┐
-│                   STREAMLIT FRONTEND                │
-│        (Multi-page app with session management)     │
-└───────────────┬─────────────────────────────────────┘
-                │
-┌───────────────▼─────────────────────────────────────┐
-│                  BACKEND SERVICES                   │
-│                                                     │
-│  ┌─────────────┐  ┌──────────────┐  ┌───────────┐  │
-│  │  Transcript │  │  RAG Engine  │  │    LLM    │  │
-│  │  Extractor  │  │ (LangChain + │  │ (Gemini/  │  │
-│  │ (YT API +   │  │  ChromaDB)   │  │  Ollama)  │  │
-│  │  Whisper)   │  │              │  │           │  │
-│  └─────────────┘  └──────────────┘  └───────────┘  │
-└───────────────┬─────────────────────────────────────┘
-                │
-┌───────────────▼─────────────────────────────────────┐
-│                   DATA LAYER                        │
-│        SQLite DB │ ChromaDB │ Local File Storage    │
-└─────────────────────────────────────────────────────┘
-```
-
----
-
-# 2️⃣ Module Planning
-
----
-
-## Module 1 — Authentication & RBAC
-
-**Stack:** bcrypt, streamlit-authenticator, SQLite  
-
-- Hashed password storage with salt  
-- Single role: Student  
-- Session tokens stored in `st.session_state`  
-- Secure page routing using `st.switch_page()`  
-
----
-
-## Module 2 — Video Ingestion Pipeline
-
-**Stack:** youtube-transcript-api, yt-dlp, openai-whisper  
-
-**Flow:**
-
-Input: YouTube URL  
-↓  
-Extract `video_id` → Fetch transcript  
-↓ (If transcript unavailable)  
-Download audio → Transcribe using Whisper  
-↓  
-Clean & chunk transcript (500 token chunks, 50 token overlap)  
-↓  
-Store:
-- Chunks → ChromaDB
-- Raw transcript → SQLite
-
----
-
-## Module 3 — PDF Note Generator
-
-**Stack:** fpdf2, Gemini API / Ollama  
-
-- Transcript passed to LLM with structured summarization prompt  
-- Output format:
-  - Title  
-  - Key Concepts  
-  - Topic-wise Notes  
-  - Important Terms  
-- PDF generated via `fpdf2`  
-- Stored in `/static/pdfs/`  
-- Downloadable from dashboard  
-
----
-
-## Module 4 — RAG Chatbot Engine
-
-**Stack:** LangChain, ChromaDB, sentence-transformers, Ollama / Gemini  
-
-**Flow:**
-
-Student Query  
-↓  
-Embed query (`all-MiniLM-L6-v2`)  
-↓  
-Similarity search → Top 4 chunks (filtered by `video_id`)  
-↓  
-Prompt:
-"Answer only from context. If not found, say so."  
-↓  
-LLM Response → Displayed in Streamlit Chat UI  
-
-✔ Strictly scoped per `video_id`  
-✔ Chat history maintained in `st.session_state`  
-
----
-
-## Module 5 — MCQ Quiz Generator
-
-**Stack:** Gemini / Ollama, SQLite, json  
-
-Summarized transcript  
-↓  
-LLM Prompt → Generate 10 MCQs in structured JSON  
-
-```
-[
- {question, optionA, optionB, optionC, optionD, correct, topic_tag}
-]
-```
-
-↓  
-Validate JSON schema  
-↓  
-Store in SQLite (`questions` table)  
-↓  
-Render quiz → Timed attempt → Submit  
-↓  
-Score computed → Stored in `quiz_attempts` table  
-
----
-
-## Module 6 — Score Storage & Progress Tracking
-
-**Stack:** SQLite, pandas, plotly  
-
-### Database Schema
-
-```sql
-users(user_id, name, password_hash, created_at)
-
-videos(video_id, title, subject, grade, created_at)
-
-questions(q_id, video_id, question, options, correct, topic_tag)
-
-quiz_attempts(
-    id, user_id, video_id, q_id,
-    topic_tag, selected, is_correct, attempted_at
-)
-
-pdf_notes(note_id, video_id, file_path, created_at)
-```
-
-### Dashboard Metrics
-
-- Accuracy % per video  
-- Score trend over time (Plotly line chart)  
-- Subject-wise performance  
-- Quiz attempt history  
-- Completion rate  
-
----
-
-## Module 7 — Weak Topic Detection
-
-**Stack:** pandas, SQLite, Plotly  
-
-```python
-weak = df[(df.user_id == uid) & (df.is_correct == False)] \
-       .groupby('topic_tag') \
-       .size() \
-       .reset_index(name='wrong_count')
-
-flagged = weak[weak.wrong_count >= threshold]  # default threshold = 2
-```
-
-### Actions Triggered:
-
-- Red badge on weak topic  
-- Recommendation to rewatch video  
-- Serve additional MCQs from same `topic_tag`  
-
----
-
-# 3️⃣ Folder Structure
-
-```
-project/
-├── app.py
-├── pages/
-│   ├── login.py
-│   ├── dashboard.py
-│   ├── video_ingestion.py
-│   ├── chatbot.py
-│   ├── quiz.py
-│   ├── progress.py
-├── backend/
-│   ├── transcript.py
-│   ├── rag_engine.py
-│   ├── quiz_generator.py
-│   ├── pdf_generator.py
-│   ├── analytics.py
-│   └── auth.py
-├── database/
-│   └── schema.sql
-├── vectorstore/
-├── static/
-│   └── pdfs/
-├── config.py
-└── requirements.txt
-```
-
----
-
-# 4️⃣ Deployment Planning
-
-| Environment        | Setup |
-|-------------------|-------|
-| Connected Mode    | Gemini API + ChromaDB + SQLite |
-| Offline Mode      | Ollama (Mistral 7B) + ChromaDB + SQLite |
-| Hybrid Mode       | Auto-switch between Gemini and Ollama |
-| Containerized     | Docker Compose (Streamlit + Ollama) |
-
----
-
-# 5️⃣ Development Phases
-
-### Phase 1 (Week 1–2)
-- Authentication  
-- Video Ingestion  
-- Transcript Extraction  
-- PDF Generation  
-
-### Phase 2 (Week 3–4)
-- RAG Chatbot  
-- MCQ Generator  
-- Score Storage  
-
-### Phase 3 (Week 5)
-- Progress Dashboard  
-- Weak Topic Detection  
-
-### Phase 4 (Week 6)
-- Docker Setup  
-- Offline Testing  
-- Performance Benchmarking  
-- Bug Fixes  
-
----
-
-# 🎯 Goal
-
-To build a scalable, AI-powered, offline-capable digital learning platform that:
-
-- Converts lectures into structured notes  
-- Enables doubt solving via RAG  
-- Tracks student performance  
-- Detects weak topics intelligently  
-- Supports both connected and low-resource environments  
-
----
+# GyaanSetu
+
+## Overview
+- GyaanSetu is a Streamlit-based educational platform for students to access study materials and test their knowledge through quizzes.
+- The platform provides secure authentication, subject-wise learning resources, and a scoring system to track student performance.
+
+## Work Done
+
+- Built a **Streamlit application** with a modular project structure.
+- Organized the project into separate files:
+  - `app.py` – Main application
+  - `auth.py` – Authentication logic
+  - `database.py` – Database operations
+  - `quiz.py` – Quiz logic and scoring
+
+- Created an **SQLite database** to store user information such as:
+  - Name  
+  - Email  
+  - Points
+
+- Implemented **user signup** with:
+  - Email validation
+  - OTP verification using SMTP.
+
+- Implemented **user login** using the registered email stored in the database.
+
+- Used **Streamlit session state** to manage authentication and maintain user login sessions.
+
+- Added a **toggle option for Signup and Login** within the application.
+
+- Created a **user dashboard** that displays:
+  - Logged-in user name
+  - Email
+  - Points earned from quizzes.
+
+- Added a **sidebar section** where students can choose:
+  - Subject
+  - Chapter.
+
+- Based on the selected **subject and chapter**, students can:
+  - View study notes online
+  - Download notes for offline study.
+
+- Implemented a **quiz system** where:
+  - Students can attempt quizzes related to the selected chapter.
+  - The final score is displayed after completing the quiz.
+  - Points are stored and updated in the database.
+
+## Technology Stack
+- Streamlit – Application framework and UI
+- Python – Backend logic
+- SQLite – Database
+- SMTP – Email OTP verification
+- Streamlit Session State – User authentication and session handling
+
+## Project Structure
+GyaanSetu  
+├── app.py  
+├── auth.py  
+├── database.py  
+├── quiz.py  
+├── notes/  
+├── quizzes/  
+└── README.md  
+
+## How to Run
+- Install dependency:
+  - `pip install streamlit`
+- Run the application:
+  - `streamlit run app.py`
