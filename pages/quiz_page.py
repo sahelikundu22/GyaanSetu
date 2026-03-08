@@ -1,22 +1,31 @@
 import streamlit as st
+from sidebar import render_sidebar
 from quiz import start_quiz
 
-def quiz_page(selected_chapter, selected_module):
-    """Quiz Page"""
-    st.subheader("❓ Quiz")
+st.set_page_config(page_title="Quiz", page_icon="❓")
 
-    if not st.session_state.quiz_started:
-        if st.button("Start Quiz", use_container_width=True):
-            st.session_state.quiz_started = True
-            st.session_state.answers = {}
-            st.rerun()
+render_sidebar()
 
-    if st.session_state.quiz_started:
-        start_quiz(selected_chapter, selected_module)
+st.title("❓ Quiz")
 
-    st.divider()
+subject = st.session_state.get('selected_subject', 'Not selected')
+chapter = st.session_state.get('selected_chapter', 'Not selected')
 
-    if st.button("End Quiz", use_container_width=True):
-        st.session_state.quiz_started = False
+st.subheader(f"{subject} - {chapter}")
+
+
+if not st.session_state.quiz_started:
+    if st.button("Start Quiz", use_container_width=True):
+        st.session_state.quiz_started = True
         st.session_state.answers = {}
         st.rerun()
+
+if st.session_state.quiz_started:
+    start_quiz(subject, chapter)
+
+st.divider()
+
+if st.button("End Quiz", use_container_width=True):
+    st.session_state.quiz_started = False
+    st.session_state.answers = {}
+    st.rerun()
