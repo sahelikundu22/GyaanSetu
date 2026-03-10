@@ -26,16 +26,20 @@
           { "chapter": "Exploring Magnets", "yt": "https://youtu.be/J1zc-RlLRTg?si=IGoRDKmaoHh-jhsL" }
         ],
         "Mathematics (Ganita Prakash)": [
-          { "chapter": "Patterns in Mathematics", "yt": "https://youtu.be/zTDMWrCV0bo?si=d1-pdOqQkXptssJG" },
-          { "chapter": "Lines and Angles", "yt": "https://youtu.be/RbeK8hz854A?si=gACvb27mvVgqS3iP" }
+          { "chapter": "PATTERNS IN MATHEMATICS", "yt": "https://youtu.be/zTDMWrCV0bo?si=d1-pdOqQkXptssJG" },
+          { "chapter": "LINES AND ANGLES", "yt": "https://youtu.be/RbeK8hz854A?si=gACvb27mvVgqS3iP" }
         ],
         "Social_Science (Exploring Society)": [
           { "chapter": "India, That Is Bharat", "yt": "https://youtu.be/83eI4Be62Nc?si=WEA4FgM-lATddrdU" },
-          { "chapter": "The Family and the Community", "yt": "https://youtu.be/8k6MYkvYAm4?si=hDsJMeX8rYa5tNS9" }
+          { "chapter": "THE FAMILY AND THE COMMUNITY", "yt": "https://youtu.be/8k6MYkvYAm4?si=hDsJMeX8rYa5tNS9" }
         ],
         "English (Poorvi)": [
-          { "chapter": "A Bottle of Dew", "yt": "https://youtu.be/EJrFJ0r4SX8?si=V2Pqk9_NuEsEx69B" },
-          { "chapter": "The Neem Baba", "yt": "https://youtu.be/7q4cZzWLscQ?si=9cmWosFYNEWIy_Ke" }
+          { "chapter": "FABLES AND FOLK TALES", "yt": "https://youtu.be/EJrFJ0r4SX8?si=V2Pqk9_NuEsEx69B" },
+          { "chapter": "NURTURING NATURE", "yt": "https://youtu.be/7q4cZzWLscQ?si=9cmWosFYNEWIy_Ke" }
+        ],
+        "Hindi (Malhar)": [
+          { "chapter": "XXXX", "yt": "https://youtu.be/EJrFJ0r4SX8?si=V2Pqk9_NuEsEx69B" },
+          { "chapter": "XXXX", "yt": "https://youtu.be/7q4cZzWLscQ?si=9cmWosFYNEWIy_Ke" }
         ]
       }
     },
