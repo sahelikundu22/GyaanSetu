@@ -50,98 +50,78 @@ import os
 import io
 from pypdf import PdfReader, PdfWriter
 
+# 1. Page Config
 st.set_page_config(page_title="Study Material", page_icon="📖", layout="wide")
 render_sidebar()
 
-# Fetch data from session state
-subject = st.session_state.get('selected_subject', 'General')
-chapter = st.session_state.get('selected_chapter', 'Introduction')
+# 2. Get session data
+subject = st.session_state.get('selected_subject', 'Subject')
+chapter = st.session_state.get('selected_chapter', 'Chapter')
 yt_link = st.session_state.get('selected_yt_link', '')
 
 st.title(f"📖 {subject}")
-st.subheader(f"Chapter: {chapter}")
+st.subheader(f"Lesson: {chapter}")
 
 # --- HELPER FUNCTIONS ---
-
 def get_compressed_pdf(file_path):
-    """Compresses the PDF and returns a bytes object."""
+    """Compresses PDF content streams to save bandwidth."""
     reader = PdfReader(file_path)
     writer = PdfWriter()
-
     for page in reader.pages:
-        page.compress_content_streams()  # This reduces the size of text/graphics
+        page.compress_content_streams() 
         writer.add_page(page)
-    
-    # Save to a byte buffer instead of a file
     remote_buffer = io.BytesIO()
     writer.write(remote_buffer)
     return remote_buffer.getvalue()
 
 def display_pdf(file_path):
-    """Encodes PDF to base64 for inline browser viewing."""
-    try:
-        with open(file_path, "rb") as f:
-            base64_pdf = base64.b64encode(f.read()).decode('utf-8')
-        
-        pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="100%" height="800" style="border:none;"></iframe>'
-        st.markdown(pdf_display, unsafe_allow_html=True)
-    except Exception as e:
-        st.error(f"Error displaying PDF: {e}")
+    """Embeds PDF in an iframe for online reading."""
+    with open(file_path, "rb") as f:
+        base64_pdf = base64.b64encode(f.read()).decode('utf-8')
+    pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="100%" height="800" type="application/pdf"></iframe>'
+    st.markdown(pdf_display, unsafe_allow_html=True)
 
-# --- MAIN UI LAYOUT ---
-
-col1, col2 = st.columns([1, 1.2])
+# --- LAYOUT ---
+col1, col2 = st.columns([1, 1])
 
 with col1:
     st.markdown("### 🎥 Video Lesson")
     if yt_link:
         st.video(yt_link)
     else:
-        st.info("Video coming soon for this chapter.")
-    
+        st.info("No video available.")
+
     st.divider()
-    
-    # DOWNLOAD SECTION
-    st.markdown("### 📥 Download Options")
+
+    st.markdown("### 📥 Downloads")
     pdf_path = f"study_material/{chapter}.pdf"
     
     if os.path.exists(pdf_path):
         # Normal Download
         with open(pdf_path, "rb") as f:
+            st.download_button("📄 Download Standard PDF", f, file_name=f"{chapter}.pdf", use_container_width=True)
+        
+        # Compressed Download
+        with st.spinner("Preparing Lite version..."):
+            compressed_data = get_compressed_pdf(pdf_path)
             st.download_button(
-                label="📄 Download High Quality (Standard)",
-                data=f,
-                file_name=f"{chapter}_HQ.pdf",
-                mime="application/pdf",
+                label=f"📶 Download Lite PDF (Saves Data)",
+                data=compressed_data,
+                file_name=f"{chapter}_compressed.pdf",
                 use_container_width=True
             )
-        
-        # Compressed Download for Rural Students
-        with st.spinner("Compressing for low bandwidth..."):
-            compressed_data = get_compressed_pdf(pdf_path)
-            orig_size = os.path.getsize(pdf_path) / 1024
-            comp_size = len(compressed_data) / 1024
-            
-            st.download_button(
-                label=f"📶 Download Lite Version ({comp_size:.1f} KB)",
-                data=compressed_data,
-                file_name=f"{chapter}_Lite.pdf",
-                mime="application/pdf",
-                use_container_width=True,
-                help=f"Reduced from {orig_size:.1f} KB. Best for slow internet."
-            )
     else:
-        st.warning("Physical PDF file not found in 'study_material' folder.")
+        st.error(f"File not found: {pdf_path}")
 
 with col2:
     st.markdown("### 📜 Read Online")
     if os.path.exists(pdf_path):
         display_pdf(pdf_path)
     else:
-        st.info("Please upload the PDF to the server to enable online reading.")
+        st.warning("PDF is currently unavailable for online viewing.")
 
 st.divider()
 
-if st.button("✅ Mark Chapter as Completed"):
-    st.success(f"Progress Saved for {chapter}!")
-    st.balloons()
+# Fixed Markdown Section
+st.markdown(f"### 📝 Key Points for {chapter}:")
+st.write("Review these points before taking the quiz!")
