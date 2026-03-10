@@ -24,11 +24,11 @@ else:
 
 st.markdown("### 📝 Study Notes")
 st.markdown(f"""
-**Key Points for {chapter}:**
+"""**Key Points for {chapter}:**
 - Point 1: Understanding the basic concepts
 - Point 2: Important formulas and definitions
 - Point 3: Real-life applications
-- Point 4: Practice examples
+- Point 4: Practice examples"""
 """)
 
 
