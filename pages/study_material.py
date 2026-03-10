@@ -16,47 +16,48 @@ yt_link = st.session_state.get('selected_yt_link', '')
 st.title(f"📖 {subject}")
 st.subheader(f"Chapter: {chapter}")
 
-# --- HELPER FUNCTIONS ---
-
+# --- IMPROVED SEARCH FUNCTION ---
 def find_pdf_case_insensitive(directory, filename):
-    """Finds a file in a directory regardless of case (e.g., matching 'super senses' to 'SUPER SENSES.pdf')."""
     if not os.path.exists(directory):
-        return None
+        return None, f"Directory '{directory}' does not exist!"
     
-    # Normalize the target name
-    target = filename.lower().replace(" ", "")
+    # Normalize the target name: lowercase and strip extra spaces
+    target = filename.lower().strip().replace(" ", "")
+    files_in_dir = os.listdir(directory)
     
-    for f in os.listdir(directory):
-        # Normalize the actual file name found in folder
-        actual_name = os.path.splitext(f)[0].lower().replace(" ", "")
-        if actual_name == target and f.lower().endswith(".pdf"):
-            return os.path.join(directory, f)
-    return None
+    for f in files_in_dir:
+        # Get filename without extension, lowercase it, strip spaces
+        name_only = os.path.splitext(f)[0].lower().strip().replace(" ", "")
+        if name_only == target and f.lower().endswith(".pdf"):
+            return os.path.join(directory, f), "Success"
+            
+    return None, f"Looked for '{target}', but found: {files_in_dir}"
 
+# --- PDF UTILITIES ---
 def get_compressed_pdf(file_path):
-    """Compresses the PDF and returns a bytes object."""
     reader = PdfReader(file_path)
     writer = PdfWriter()
     for page in reader.pages:
         page.compress_content_streams()
         writer.add_page(page)
-    
-    remote_buffer = io.BytesIO()
-    writer.write(remote_buffer)
-    return remote_buffer.getvalue()
+    buf = io.BytesIO()
+    writer.write(buf)
+    return buf.getvalue()
 
 def display_pdf(file_path):
-    """Encodes PDF to base64 for inline browser viewing."""
     with open(file_path, "rb") as f:
         base64_pdf = base64.b64encode(f.read()).decode('utf-8')
-    
-    pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="100%" height="800" style="border:none;"></iframe>'
+    # Using object tag as an alternative to iframe for better compatibility
+    pdf_display = f'<embed src="data:application/pdf;base64,{base64_pdf}" width="100%" height="800" type="application/pdf">'
     st.markdown(pdf_display, unsafe_allow_html=True)
 
 # --- MAIN LOGIC ---
+pdf_path, debug_msg = find_pdf_case_insensitive("study_material", chapter)
 
-# Search for the file in the study_material folder
-pdf_path = find_pdf_case_insensitive("study_material", chapter)
+# DEBUG SECTION (Remove this once fixed)
+with st.expander("🛠️ Debug Information (Click to see why PDF is missing)"):
+    st.write(f"**Searching for Chapter:** {chapter}")
+    st.write(f"**Folder Status:** {debug_msg}")
 
 col1, col2 = st.columns([1, 1.2])
 
@@ -65,47 +66,23 @@ with col1:
     if yt_link:
         st.video(yt_link)
     else:
-        st.info("No video available for this chapter.")
+        st.info("No video available.")
     
     st.divider()
     
-    st.markdown("### 📥 Download Options")
-    
     if pdf_path:
-        # Normal Download
+        st.markdown("### 📥 Downloads")
         with open(pdf_path, "rb") as f:
-            st.download_button(
-                label="📄 Download Standard PDF",
-                data=f,
-                file_name=f"{chapter}.pdf",
-                mime="application/pdf",
-                use_container_width=True
-            )
+            st.download_button("📄 Standard PDF", f, file_name=f"{chapter}.pdf", use_container_width=True)
         
-        # Compressed Download
-        with st.spinner("Compressing for low bandwidth..."):
-            compressed_data = get_compressed_pdf(pdf_path)
-            st.download_button(
-                label="📶 Download Lite Version (Saves Data)",
-                data=compressed_data,
-                file_name=f"{chapter}_Lite.pdf",
-                mime="application/pdf",
-                use_container_width=True
-            )
+        compressed_data = get_compressed_pdf(pdf_path)
+        st.download_button("📶 Lite Version", compressed_data, file_name=f"{chapter}_Lite.pdf", use_container_width=True)
     else:
-        st.warning(f"Could not find PDF for: {chapter}")
-        st.info("Check if the file exists in the 'study_material' folder.")
+        st.warning("Download unavailable: File not found.")
 
 with col2:
     st.markdown("### 📜 Read Online")
     if pdf_path:
         display_pdf(pdf_path)
     else:
-        st.info("PDF view not available.")
-
-st.divider()
-
-# Fixed Markdown Section (Correct Syntax)
-st.markdown(f"### 📝 Key Points for {chapter}")
-st.markdown("- Critical concepts covered in this chapter.")
-st.markdown("- Key definitions and terminology.")
+        st.error("PDF view not available. Check the Debug Info above.")
