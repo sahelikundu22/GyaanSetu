@@ -107,21 +107,21 @@ st.subheader(f"Chapter: {chapter}")
 
 # --- FUNCTION: FIND PDF IN STATIC FOLDER ---
 def find_static_pdf(subject_name, chapter_name):
-    # OS Path for the server to find the file
+    # OS Path (for Python to find the file)
     base_dir = os.path.join("static", "study_material", subject_name)
     
     if not os.path.exists(base_dir):
         return None, None
     
-    # Normalize for case-insensitive search
     target = chapter_name.lower().strip().replace(" ", "")
     for f in os.listdir(base_dir):
         name_only = os.path.splitext(f)[0].lower().strip().replace(" ", "")
         if name_only == target and f.lower().endswith(".pdf"):
-            full_os_path = os.path.join(base_dir, f)
-            # URL path for the browser (Streamlit maps /static/ to /app/static/ or /static/)
-            web_url = f"static/study_material/{subject_name}/{f}"
-            return full_os_path, web_url
+            full_path = os.path.join(base_dir, f)
+            
+            # THE FIX: Try adding a leading slash so the browser knows the root
+            web_url = f"/static/study_material/{subject_name}/{f}"
+            return full_path, web_url
             
     return None, None
 
