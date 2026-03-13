@@ -11,39 +11,40 @@ from database import save_quiz_score
 
 st.set_page_config(page_title="AI Quiz", layout="wide")
 
+render_sidebar()
+
+st.title("🤖 AI Quiz Generator")
+st.write("Upload a chapter PDF to generate a quiz.")
+
+# ---------- CSS FOR QUIZ UI ----------
 st.markdown("""
 <style>
 
 .correct-answer {
     background-color:#c8f7c5;
     color:black !important;
-    padding:8px;
+    padding:10px;
     border-radius:6px;
     margin:4px 0;
+    font-weight:600;
 }
 
 .wrong-answer {
     background-color:#ffcdd2;
     color:black !important;
-    padding:8px;
+    padding:10px;
     border-radius:6px;
     margin:4px 0;
+    font-weight:600;
 }
 
-.selected-answer {
-    border:2px solid #4CAF50;
+.neutral-answer {
     padding:8px;
-    border-radius:6px;
 }
 
 </style>
 """, unsafe_allow_html=True)
 
-render_sidebar()
-
-st.title("🤖 AI Quiz Generator")
-
-st.write("Upload a chapter PDF and generate a quiz.")
 
 # ---------- Upload PDF ----------
 
@@ -66,7 +67,7 @@ if uploaded_pdf and st.button("Generate Quiz", use_container_width=True):
             st.success("✅ Quiz generated successfully!")
 
 
-# ---------- Display Quiz ----------
+# ---------- SHOW QUIZ ----------
 
 if "ai_quiz" in st.session_state and not st.session_state.get("quiz_submitted", False):
 
@@ -83,7 +84,7 @@ if "ai_quiz" in st.session_state and not st.session_state.get("quiz_submitted", 
             st.markdown(f"### Q{i+1}. {q['q']}")
 
             ans = st.radio(
-                "Select answer",
+                "Select your answer:",
                 q["o"],
                 key=f"q{i}"
             )
@@ -93,12 +94,11 @@ if "ai_quiz" in st.session_state and not st.session_state.get("quiz_submitted", 
         submitted = st.form_submit_button("Submit Quiz")
 
     if submitted:
-
         st.session_state.quiz_submitted = True
         st.session_state.user_answers = user_answers
 
 
-# ---------- Show Results ----------
+# ---------- SHOW RESULTS ----------
 
 if "ai_quiz" in st.session_state and st.session_state.get("quiz_submitted"):
 
@@ -109,7 +109,6 @@ if "ai_quiz" in st.session_state and st.session_state.get("quiz_submitted"):
 
     st.subheader("📊 Quiz Results")
     st.divider()
-
 
     for i, q in enumerate(questions):
 
@@ -135,48 +134,15 @@ if "ai_quiz" in st.session_state and st.session_state.get("quiz_submitted"):
                 )
 
             else:
-
-                if option == user:
-                    st.markdown(
-                        f"<div class='selected-answer'>{option}</div>",
-                        unsafe_allow_html=True
-                    )
-                else:
-                    st.write(option)
-
-        st.divider()
-
-"""
-    for i, q in enumerate(questions):
-
-        correct = q["a"]
-        user = user_answers[i]
-
-        st.markdown(f"### Q{i+1}. {q['q']}")
-
-        for option in q["o"]:
-
-            if option == correct:
-
                 st.markdown(
-                    f"<div style='background-color:#d4edda;padding:10px;border-radius:6px;margin:3px;'>✅ {option}</div>",
+                    f"<div class='neutral-answer'>{option}</div>",
                     unsafe_allow_html=True
                 )
-
-            elif option == user and user != correct:
-                st.markdown(
-                    f"<div style='background-color:#d4edda;color:black;padding:10px;border-radius:6px;margin:3px;'>✅ {option}</div>",
-                    unsafe_allow_html=True
-                )
-
-            else:
-                st.write(option)
 
         if user == correct:
             score += 1
 
         st.divider()
-"""
 
     total = len(questions)
 
@@ -185,7 +151,8 @@ if "ai_quiz" in st.session_state and st.session_state.get("quiz_submitted"):
     if score == total:
         st.balloons()
 
-    # ---------- Save Score ----------
+
+    # ---------- SAVE SCORE TO DATABASE ----------
 
     save_quiz_score(
         st.session_state.get("name", "student"),
