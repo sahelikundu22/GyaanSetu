@@ -53,3 +53,7 @@ dist/
 
 # Environment Variables
 .env
+
+# for ai generated quiz
+openai
+PyPDF2
