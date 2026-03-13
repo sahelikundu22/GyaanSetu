@@ -35,43 +35,89 @@ if st.button("End Quiz", use_container_width=True):
 import streamlit as st
 import sys, os
 
-# PATH FIX: Allow finding sidebar and quiz_utils
+# Fix path so we can import files from root
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from sidebar import render_sidebar
 
-# Import utility safely
 try:
     from quiz_utils import generate_ai_quiz
 except ImportError:
-    st.error("Error: quiz_utils.py not found in main directory.")
+    st.error("quiz_utils.py not found in project root.")
 
-st.set_page_config(page_title="AI Quiz")
+st.set_page_config(page_title="AI Quiz", layout="wide")
+
 render_sidebar()
 
 st.title("🤖 AI Quiz Generator")
-st.write("Upload a PDF to generate a practice quiz instantly.")
+st.write("Upload a chapter PDF to generate a practice quiz instantly.")
 
-up_file = st.file_uploader("Upload PDF", type="pdf")
+# ---------------- FILE UPLOAD ----------------
 
-if up_file and st.button("Generate AI Quiz", use_container_width=True):
-    with st.spinner("AI is analyzing content..."):
-        questions = generate_ai_quiz(up_file)
-        if "error" not in questions:
-            st.session_state.ai_quiz_data = questions
-            st.success("Quiz Generated!")
+uploaded_pdf = st.file_uploader("📄 Upload Chapter PDF", type="pdf")
+
+if uploaded_pdf and st.button("Generate AI Quiz", use_container_width=True):
+
+    with st.spinner("AI is reading the chapter and creating questions..."):
+
+        result = generate_ai_quiz(uploaded_pdf)
+
+        if isinstance(result, dict) and "error" in result:
+            st.error(f"AI Error: {result['error']}")
         else:
-            st.error(f"Error: {questions['error']}")
+            st.session_state.ai_quiz_data = result
+            st.session_state.ai_quiz_submitted = False
+            st.success("✅ Quiz generated successfully!")
+
+# ---------------- DISPLAY QUIZ ----------------
 
 if "ai_quiz_data" in st.session_state:
-    score = 0
-    with st.form("ai_form"):
-        for i, q in enumerate(st.session_state.ai_quiz_data):
-            st.write(f"**{i+1}. {q['q']}**")
-            user_ans = st.radio("Choose:", q['o'], key=f"ai_q_{i}")
-            if user_ans == q['a']:
+
+    questions = st.session_state.ai_quiz_data
+
+    st.divider()
+    st.subheader("📝 AI Generated Quiz")
+
+    with st.form("ai_quiz_form"):
+
+        user_answers = []
+
+        for i, q in enumerate(questions):
+
+            st.markdown(f"**{i+1}. {q['q']}**")
+
+            ans = st.radio(
+                "Choose your answer:",
+                q["o"],
+                key=f"ai_question_{i}"
+            )
+
+            user_answers.append(ans)
+
+        submitted = st.form_submit_button("Submit Quiz")
+
+    # ----------- SCORE CALCULATION AFTER SUBMIT -----------
+
+    if submitted:
+
+        score = 0
+
+        for i, q in enumerate(questions):
+            if user_answers[i] == q["a"]:
                 score += 1
-        
-        if st.form_submit_button("Submit Quiz"):
-            st.success(f"Final Score: {score} / {len(st.session_state.ai_quiz_data)}")
-            if score == len(st.session_state.ai_quiz_data):
-                st.balloons()
+
+        total = len(questions)
+
+        st.session_state.ai_quiz_submitted = True
+
+        st.success(f"🎯 Final Score: {score} / {total}")
+
+        if score == total:
+            st.balloons()
+
+        # Show correct answers
+        st.divider()
+        st.subheader("✅ Correct Answers")
+
+        for i, q in enumerate(questions):
+            st.write(f"**Q{i+1}: {q['a']}**")
