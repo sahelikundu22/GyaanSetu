@@ -31,19 +31,23 @@ if st.button("End Quiz", use_container_width=True):
     st.session_state.answers = {}
     st.rerun()
 """
-
 import streamlit as st
 import sys, os
+
+from sidebar import render_sidebar
+from quiz_utils import generate_ai_quiz
+
 
 # Fix path so we can import files from root
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from sidebar import render_sidebar
 
+"""
 try:
     from quiz_utils import generate_ai_quiz
 except ImportError:
     st.error("quiz_utils.py not found in project root.")
+"""
 
 st.set_page_config(page_title="AI Quiz", layout="wide")
 
