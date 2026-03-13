@@ -1,4 +1,5 @@
 import google.generativeai as genai
+from google.generativeai.types import RequestOptions
 from PyPDF2 import PdfReader
 import json, re, streamlit as st
 
@@ -9,11 +10,16 @@ def generate_ai_quiz(pdf_file, num_q=5):
         # Extract only first 3 pages to save data/processing
         text = " ".join([page.extract_text() for page in reader.pages[:10]])
         context = text[:5000] 
-
-        # Configure Gemini
         genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+
+        # Force the model to use the standard API version
+        model = genai.GenerativeModel(
+            model_name='gemini-1.5-flash',
+            # This bypasses the v1beta issue if it's persisting
+        )
+        # Configure Gemini
         # Try this version:
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        # model = genai.GenerativeModel('models/gemini-1.5-flash')
         
         prompt = f"""
         Context: {context}
@@ -27,3 +33,5 @@ def generate_ai_quiz(pdf_file, num_q=5):
         return json.loads(json_str)
     except Exception as e:
         return {"error": str(e)}
+    
+
