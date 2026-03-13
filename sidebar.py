@@ -57,31 +57,31 @@ import json
 def render_sidebar():
     with st.sidebar:
         st.title("📚 GyaanSetu")
-        st.write(f"**Student:** {st.session_state.get('name', 'User')}")
-        st.write(f"**Class:** {st.session_state.get('user_class', '5')}")
+        st.write(f"👤 **{st.session_state.get('name', 'Student')}**")
+        st.write(f"🎓 **Class {st.session_state.get('user_class', '5')}**")
         st.divider()
 
         try:
             with open('cbse_data.json', 'r', encoding='utf-8') as f:
-                data = json.load(f)["cbse_curriculum_2024_26"]
+                curriculum = json.load(f)["cbse_curriculum_2024_26"]
             
-            u_class = f"class_{st.session_state.get('user_class', '5')}"
-            subjects = list(data[u_class]["subjects"].keys())
+            class_key = f"class_{st.session_state.get('user_class', '5')}"
+            subjects = list(curriculum[class_key]["subjects"].keys())
             
-            sel_sub = st.selectbox("Subject", subjects)
-            chapters = data[u_class]["subjects"][sel_sub]
+            sel_sub = st.selectbox("Select Subject", subjects, key="sb_sub")
+            chapters = curriculum[class_key]["subjects"][sel_sub]
             chapter_names = [c["chapter"] for c in chapters]
-            sel_ch = st.selectbox("Chapter", chapter_names)
+            sel_ch = st.selectbox("Select Chapter", chapter_names, key="sb_ch")
             
-            # Store data
+            # Global session updates
             st.session_state.selected_subject = sel_sub
             st.session_state.selected_chapter = sel_ch
             st.session_state.selected_yt_link = next(c["yt"] for c in chapters if c["chapter"] == sel_ch)
             
-        except Exception as e:
-            st.error("Select your subject details.")
+        except Exception:
+            st.info("Select subject details above.")
 
         st.divider()
-        if st.button("Logout"):
+        if st.button("Logout", use_container_width=True):
             st.session_state.logged_in = False
             st.rerun()

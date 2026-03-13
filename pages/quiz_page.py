@@ -33,25 +33,45 @@ if st.button("End Quiz", use_container_width=True):
 """
 
 import streamlit as st
+import sys, os
+
+# PATH FIX: Allow finding sidebar and quiz_utils
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from sidebar import render_sidebar
-from quiz_utils import generate_ai_quiz
+
+# Import utility safely
+try:
+    from quiz_utils import generate_ai_quiz
+except ImportError:
+    st.error("Error: quiz_utils.py not found in main directory.")
 
 st.set_page_config(page_title="AI Quiz")
 render_sidebar()
 
 st.title("🤖 AI Quiz Generator")
-up_file = st.file_uploader("Upload Chapter PDF", type="pdf")
+st.write("Upload a PDF to generate a practice quiz instantly.")
 
-if up_file and st.button("Generate Questions"):
-    with st.spinner("AI is analyzing..."):
-        st.session_state.ai_questions = generate_ai_quiz(up_file)
+up_file = st.file_uploader("Upload PDF", type="pdf")
 
-if "ai_questions" in st.session_state:
-    with st.form("quiz"):
-        score = 0
-        for i, q in enumerate(st.session_state.ai_questions):
+if up_file and st.button("Generate AI Quiz", use_container_width=True):
+    with st.spinner("AI is analyzing content..."):
+        questions = generate_ai_quiz(up_file)
+        if "error" not in questions:
+            st.session_state.ai_quiz_data = questions
+            st.success("Quiz Generated!")
+        else:
+            st.error(f"Error: {questions['error']}")
+
+if "ai_quiz_data" in st.session_state:
+    score = 0
+    with st.form("ai_form"):
+        for i, q in enumerate(st.session_state.ai_quiz_data):
             st.write(f"**{i+1}. {q['q']}**")
-            ans = st.radio("Select:", q['o'], key=f"q{i}")
-            if ans == q['a']: score += 1
-        if st.form_submit_button("Submit"):
-            st.success(f"Score: {score}/{len(st.session_state.ai_questions)}")
+            user_ans = st.radio("Choose:", q['o'], key=f"ai_q_{i}")
+            if user_ans == q['a']:
+                score += 1
+        
+        if st.form_submit_button("Submit Quiz"):
+            st.success(f"Final Score: {score} / {len(st.session_state.ai_quiz_data)}")
+            if score == len(st.session_state.ai_quiz_data):
+                st.balloons()
