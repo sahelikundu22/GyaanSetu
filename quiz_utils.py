@@ -12,7 +12,8 @@ def generate_ai_quiz(pdf_file, num_q=5):
 
         # Configure Gemini
         genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        # Try this version:
+        model = genai.GenerativeModel('gemini-pro')
         
         prompt = f"""
         Context: {context}
