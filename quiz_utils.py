@@ -6,58 +6,44 @@ import re
 
 
 def generate_ai_quiz(pdf_file, num_q=5):
-    """
-    Generate MCQ quiz from uploaded PDF using OpenAI.
-    Optimized for lightweight processing.
-    """
 
     try:
-        # ---------- Extract text from PDF ----------
+        # Extract text from PDF
         reader = PdfReader(pdf_file)
 
-        extracted_text = ""
-        max_pages = min(8, len(reader.pages))
+        text = ""
+        pages_to_read = min(5, len(reader.pages))
 
-        for i in range(max_pages):
-            text = reader.pages[i].extract_text()
-            if text:
-                extracted_text += text + " "
+        for i in range(pages_to_read):
+            page_text = reader.pages[i].extract_text()
+            if page_text:
+                text += page_text + " "
 
-        if not extracted_text.strip():
-            return {"error": "Could not extract text from the PDF."}
+        if not text.strip():
+            return {"error": "Could not read text from PDF"}
 
-        context = extracted_text[:5000]
+        context = text[:4000]
 
-        # ---------- OpenAI Client ----------
+        # OpenAI client
         client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
-        # ---------- Prompt ----------
         prompt = f"""
-        You are an educational quiz generator.
-
-        Based on the following study material, generate {num_q} multiple choice questions.
+        Create {num_q} multiple choice questions from the following study material.
 
         Context:
         {context}
 
-        Rules:
-        - Each question must have exactly 4 options
-        - Only one correct answer
-        - Questions should be suitable for school students
-        - Keep language simple
-
-        Return ONLY valid JSON in this format:
+        Return ONLY JSON in this format:
 
         [
-          {{
-            "q": "Question text",
-            "o": ["Option A","Option B","Option C","Option D"],
-            "a": "Correct Option Text"
-          }}
+        {{
+        "q": "Question text",
+        "o": ["A","B","C","D"],
+        "a": "Correct option text"
+        }}
         ]
         """
 
-        # ---------- AI Request ----------
         response = client.chat.completions.create(
             model="gpt-4.1-mini",
             messages=[
@@ -67,30 +53,19 @@ def generate_ai_quiz(pdf_file, num_q=5):
             temperature=0.4
         )
 
-        text = response.choices[0].message.content.strip()
+        result = response.choices[0].message.content
 
-        # ---------- Clean JSON ----------
-        text = re.sub(r"```json|```", "", text).strip()
+        # Clean JSON
+        result = re.sub(r"```json|```", "", result).strip()
 
-        start = text.find("[")
-        end = text.rfind("]") + 1
+        start = result.find("[")
+        end = result.rfind("]") + 1
 
-        if start == -1 or end == -1:
-            return {"error": "AI response format incorrect."}
+        json_str = result[start:end]
 
-        json_str = text[start:end]
+        quiz = json.loads(json_str)
 
-        quiz_data = json.loads(json_str)
-
-        # ---------- Validate ----------
-        if not isinstance(quiz_data, list):
-            return {"error": "Invalid quiz format."}
-
-        for q in quiz_data:
-            if not all(k in q for k in ("q", "o", "a")):
-                return {"error": "Missing fields in quiz data."}
-
-        return quiz_data
+        return quiz
 
     except Exception as e:
         return {"error": str(e)}
