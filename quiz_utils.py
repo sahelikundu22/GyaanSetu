@@ -7,13 +7,13 @@ def generate_ai_quiz(pdf_file, num_q=5):
     try:
         reader = PdfReader(pdf_file)
         # Extract only first 3 pages to save data/processing
-        text = " ".join([page.extract_text() for page in reader.pages[:3]])
+        text = " ".join([page.extract_text() for page in reader.pages[:10]])
         context = text[:5000] 
 
         # Configure Gemini
         genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
         # Try this version:
-        model = genai.GenerativeModel('gemini-pro')
+        model = genai.GenerativeModel('gemini-1.5-flash')
         
         prompt = f"""
         Context: {context}
