@@ -99,12 +99,11 @@ if "ai_quiz" in st.session_state and st.session_state.get("quiz_submitted"):
                 )
 
             elif option == user and user != correct:
-
                 st.markdown(
-                    f"<div style='background-color:#f8d7da;padding:10px;border-radius:6px;margin:3px;'>❌ {option}</div>",
+                    f"<div style='background-color:#d4edda;color:black;padding:10px;border-radius:6px;margin:3px;'>✅ {option}</div>",
                     unsafe_allow_html=True
                 )
-
+                
             else:
                 st.write(option)
 
