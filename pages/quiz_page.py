@@ -11,6 +11,34 @@ from database import save_quiz_score
 
 st.set_page_config(page_title="AI Quiz", layout="wide")
 
+st.markdown("""
+<style>
+
+.correct-answer {
+    background-color:#c8f7c5;
+    color:black !important;
+    padding:8px;
+    border-radius:6px;
+    margin:4px 0;
+}
+
+.wrong-answer {
+    background-color:#ffcdd2;
+    color:black !important;
+    padding:8px;
+    border-radius:6px;
+    margin:4px 0;
+}
+
+.selected-answer {
+    border:2px solid #4CAF50;
+    padding:8px;
+    border-radius:6px;
+}
+
+</style>
+""", unsafe_allow_html=True)
+
 render_sidebar()
 
 st.title("🤖 AI Quiz Generator")
@@ -82,6 +110,43 @@ if "ai_quiz" in st.session_state and st.session_state.get("quiz_submitted"):
     st.subheader("📊 Quiz Results")
     st.divider()
 
+
+    for i, q in enumerate(questions):
+
+        correct = q["a"]
+        user = user_answers[i]
+
+        st.markdown(f"### Q{i+1}. {q['q']}")
+
+        for option in q["o"]:
+
+            if option == correct:
+
+                st.markdown(
+                    f"<div class='correct-answer'>✅ {option}</div>",
+                    unsafe_allow_html=True
+                )
+
+            elif option == user and user != correct:
+
+                st.markdown(
+                    f"<div class='wrong-answer'>❌ {option}</div>",
+                    unsafe_allow_html=True
+                )
+
+            else:
+
+                if option == user:
+                    st.markdown(
+                        f"<div class='selected-answer'>{option}</div>",
+                        unsafe_allow_html=True
+                    )
+                else:
+                    st.write(option)
+
+        st.divider()
+
+"""
     for i, q in enumerate(questions):
 
         correct = q["a"]
@@ -103,7 +168,7 @@ if "ai_quiz" in st.session_state and st.session_state.get("quiz_submitted"):
                     f"<div style='background-color:#d4edda;color:black;padding:10px;border-radius:6px;margin:3px;'>✅ {option}</div>",
                     unsafe_allow_html=True
                 )
-                
+
             else:
                 st.write(option)
 
@@ -111,6 +176,7 @@ if "ai_quiz" in st.session_state and st.session_state.get("quiz_submitted"):
             score += 1
 
         st.divider()
+"""
 
     total = len(questions)
 
