@@ -12,6 +12,7 @@ ENV/
 # Streamlit
 .streamlit/
 .streamlit/secrets.toml
+.streamlit/config.toml
 
 # Database Files
 *.db
