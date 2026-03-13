@@ -55,5 +55,5 @@ dist/
 .env
 
 # for ai generated quiz
-openai
+groq
 PyPDF2
