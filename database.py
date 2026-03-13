@@ -46,3 +46,27 @@ def get_user_by_email(email):
 
     connection.close()
     return user
+
+def save_quiz_score(username, subject, chapter, score, total):
+    
+    connection = sqlite3.connect(DB_NAME)
+    cursor = connection.cursor()
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS quiz_scores (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT,
+        subject TEXT,
+        chapter TEXT,
+        score INTEGER,
+        total INTEGER
+    )
+    """)
+
+    cursor.execute("""
+    INSERT INTO quiz_scores (username, subject, chapter, score, total)
+    VALUES (?, ?, ?, ?, ?)
+    """, (username, subject, chapter, score, total))
+
+    connection.commit()
+    connection.close()
