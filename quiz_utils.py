@@ -1,74 +1,75 @@
-import google.generativeai as genai
+import streamlit as st
+from openai import OpenAI
 from PyPDF2 import PdfReader
 import json
 import re
-import streamlit as st
 
 
 def generate_ai_quiz(pdf_file, num_q=5):
     """
-    Generate MCQ quiz from uploaded PDF using Gemini AI.
+    Generate MCQ quiz from uploaded PDF using OpenAI.
     Optimized for lightweight processing.
     """
 
     try:
-        # -------- Extract text from PDF --------
+        # ---------- Extract text from PDF ----------
         reader = PdfReader(pdf_file)
 
         extracted_text = ""
-        max_pages = min(8, len(reader.pages))  # limit pages for speed
+        max_pages = min(8, len(reader.pages))
 
         for i in range(max_pages):
-            page_text = reader.pages[i].extract_text()
-            if page_text:
-                extracted_text += page_text + " "
+            text = reader.pages[i].extract_text()
+            if text:
+                extracted_text += text + " "
 
         if not extracted_text.strip():
-            return {"error": "Could not extract text from PDF."}
+            return {"error": "Could not extract text from the PDF."}
 
-        # Reduce context size for faster AI processing
         context = extracted_text[:5000]
 
-        # -------- Configure Gemini --------
-        genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+        # ---------- OpenAI Client ----------
+        client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
-        model = genai.GenerativeModel("gemini-1.5-flash")
-
-        # -------- Prompt --------
+        # ---------- Prompt ----------
         prompt = f"""
         You are an educational quiz generator.
 
-        Using the following study material, generate {num_q} multiple-choice questions.
+        Based on the following study material, generate {num_q} multiple choice questions.
 
         Context:
         {context}
 
         Rules:
         - Each question must have exactly 4 options
-        - Only one option should be correct
-        - Questions should test understanding of the concept
-        - Keep language simple for school students
+        - Only one correct answer
+        - Questions should be suitable for school students
+        - Keep language simple
 
         Return ONLY valid JSON in this format:
 
         [
-            {{
-                "q": "Question text",
-                "o": ["Option A", "Option B", "Option C", "Option D"],
-                "a": "Correct Option Text"
-            }}
+          {{
+            "q": "Question text",
+            "o": ["Option A","Option B","Option C","Option D"],
+            "a": "Correct Option Text"
+          }}
         ]
         """
 
-        # -------- Generate response --------
-        response = model.generate_content(prompt)
+        # ---------- AI Request ----------
+        response = client.chat.completions.create(
+            model="gpt-4.1-mini",
+            messages=[
+                {"role": "system", "content": "You generate educational quizzes."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.4
+        )
 
-        if not response.text:
-            return {"error": "AI returned empty response."}
+        text = response.choices[0].message.content.strip()
 
-        text = response.text.strip()
-
-        # -------- Clean AI response --------
+        # ---------- Clean JSON ----------
         text = re.sub(r"```json|```", "", text).strip()
 
         start = text.find("[")
@@ -81,13 +82,13 @@ def generate_ai_quiz(pdf_file, num_q=5):
 
         quiz_data = json.loads(json_str)
 
-        # -------- Validate output --------
+        # ---------- Validate ----------
         if not isinstance(quiz_data, list):
-            return {"error": "Invalid quiz format returned by AI."}
+            return {"error": "Invalid quiz format."}
 
         for q in quiz_data:
             if not all(k in q for k in ("q", "o", "a")):
-                return {"error": "Quiz format missing required fields."}
+                return {"error": "Missing fields in quiz data."}
 
         return quiz_data
 
