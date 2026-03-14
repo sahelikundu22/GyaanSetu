@@ -65,7 +65,7 @@ if uploaded_file:
     with col_chat:
         st.subheader("Chat")
 
-        # ── Process PDF once per upload ───────────────────────────────────
+        # Process PDF once per upload
         file_id = uploaded_file.name + str(len(pdf_bytes))
         if st.session_state.get("file_id") != file_id:
             st.session_state.chat_history = []
@@ -86,7 +86,7 @@ if uploaded_file:
         else:
             st.info(f"✅ Ready — {st.session_state.get('total_chunks', 0)} chunks indexed.")
 
-        # ── Chat display ──────────────────────────────────────────────────
+        # Chat display
         chat_container = st.container(height=500)
         with chat_container:
             if not st.session_state.chat_history:
@@ -101,7 +101,7 @@ if uploaded_file:
                         if entry.get("highlight_page"):
                             st.caption(f"📌 Highlighted on page {entry['highlight_page']}")
 
-        # ── Chat input ────────────────────────────────────────────────────
+        # Chat input 
         question = st.chat_input("Ask a question about the PDF...")
 
         if question:
