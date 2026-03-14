@@ -1,56 +1,84 @@
+from typing import List, Tuple
 import torch
+import math
+import streamlit as st
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 
-# Load tokenizer
-tokenizer = AutoTokenizer.from_pretrained(
-    "ai4bharat/IndicBART",
-    do_lower_case=False,
-    use_fast=False,
-    keep_accents=True
-)
+@st.cache_resource
+def load_qa_model():
+    model_name = "google/flan-t5-large"
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
+    model.eval()
+    return tokenizer, model
 
-# Load model
-model = AutoModelForSeq2SeqLM.from_pretrained("ai4bharat/IndicBART")
-model.eval()
+def ask_model(question: str, contexts: List[str]) -> Tuple[str, float]:
+    tokenizer, model = load_qa_model()
 
-# Special token ids
-bos_id = tokenizer._convert_token_to_id_with_added_voc("<s>")
-eos_id = tokenizer._convert_token_to_id_with_added_voc("</s>")
-pad_id = tokenizer._convert_token_to_id_with_added_voc("<pad>")
+    best_answer = ""
+    best_score = -float("inf")
 
+    for chunk in contexts:
+        if not chunk.strip():
+            continue
 
+        # Simple, clean prompt — flan-t5 works best with minimal instructions
+        prompt = f"""Context: {chunk}
 
-def ask_model(question, context):
+Question: {question}
 
-    # keep prompt simple
-    prompt = f"{context}\nQuestion: {question}\nAnswer:"
+Based on the context, provide a detailed answer in multiple sentences:"""
 
-    formatted_input = f"{prompt} </s> <2en>"
-
-    inputs = tokenizer(
-        formatted_input,
-        return_tensors="pt",
-        truncation=True,
-        max_length=512,
-        padding=True
-    )
-
-    with torch.no_grad():
-        output = model.generate(
-            inputs.input_ids,
-            num_beams=4,
-            max_length=60,
-            early_stopping=True,
-            pad_token_id=pad_id,
-            bos_token_id=bos_id,
-            eos_token_id=eos_id,
-            decoder_start_token_id=tokenizer._convert_token_to_id_with_added_voc("<2en>")
+        inputs = tokenizer(
+            prompt,
+            return_tensors="pt",
+            truncation=True,
+            max_length=1024,
+            padding=True,
         )
 
-    decoded_output = tokenizer.decode(output[0], skip_special_tokens=True)
+        with torch.no_grad():
+            outputs = model.generate(
+                input_ids=inputs.input_ids,
+                attention_mask=inputs.attention_mask,
+                max_new_tokens=250,
+                min_new_tokens=40,
+                num_beams=4,
+                early_stopping=True,  
+                no_repeat_ngram_size=3,
+                repetition_penalty=1.3,
+                length_penalty=2.0,
+                output_scores=True,
+                return_dict_in_generate=True,
+            )
 
-    decoded_output = decoded_output.replace("<2en>", "").strip()
+        answer = tokenizer.decode(
+            outputs.sequences[0], skip_special_tokens=True
+        ).strip()
 
-    return decoded_output
+        # Clean up any prompt leakage
+        for phrase in [
+            "Based on the context,",
+            "provide a detailed answer in multiple sentences:",
+            "Context:",
+            "Question:",
+        ]:
+            answer = answer.replace(phrase, "").strip()
 
-  
+        score = outputs.sequences_scores[0].item() if outputs.sequences_scores is not None else 0.0
+
+        if (
+            answer
+            and len(answer.split()) > 5
+            and "does not contain" not in answer.lower()
+            and score > best_score
+        ):
+            best_score = score
+            best_answer = answer
+
+    if not best_answer:
+        return "❌ The document does not contain information about this. Try rephrasing.", 0.0
+
+    confidence = round(min(max(math.exp(best_score) * 100, 1.0), 99.0), 1)
+
+    return best_answer, confidence

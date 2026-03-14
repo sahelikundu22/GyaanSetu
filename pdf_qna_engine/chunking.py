@@ -1,12 +1,21 @@
-def split_text(text, chunk_size=500, overlap=100):
+from typing import List
+
+def split_text(text: str, chunk_size: int = 150, overlap: int = 30) -> List[str]:
+    """
+    Split text into overlapping chunks of approximately chunk_size words.
+    Smaller chunks give the QA model tighter, more focused context.
+    """
+    if not text.strip():
+        return []
 
     words = text.split()
     chunks = []
+    start = 0
 
-    step = chunk_size - overlap
-
-    for i in range(0, len(words), step):
-        chunk = " ".join(words[i:i + chunk_size])
+    while start < len(words):
+        end = start + chunk_size
+        chunk = " ".join(words[start:end])
         chunks.append(chunk)
+        start += chunk_size - overlap
 
     return chunks

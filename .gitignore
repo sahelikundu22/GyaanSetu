@@ -53,7 +53,3 @@ dist/
 
 # Environment Variables
 .env
-
-# for ai generated quiz
-groq
-PyPDF2

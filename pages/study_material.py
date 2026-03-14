@@ -57,5 +57,5 @@ with col2:
         st.error("PDF file not found in folder.")
 
 st.divider()
-st.markdown(f"### 📝 Key Points for {chapter}")
+# st.markdown(f"### 📝 Key Points for {chapter}")
 st.write("- Watch the video. \n- Read the notes. \n- Complete the quiz.")
