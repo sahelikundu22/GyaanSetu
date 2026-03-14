@@ -1,0 +1,10 @@
+streamlit
+pypdf
+qdrant-client
+sentence-transformers
+numpy
+requests
+transformers 
+torch 
+sentencepiece
+groq

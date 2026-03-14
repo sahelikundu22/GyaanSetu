@@ -11,6 +11,7 @@ def dashboard():
   
     render_sidebar()
 
+
     st.title("Dashboard")
     st.write(f"Welcome, {st.session_state.name}!")
     
