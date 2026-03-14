@@ -5,9 +5,8 @@ sentence-transformers
 transformers
 torch
 numpy
-tiktoken
 langdetect
 sentencepiece
-accelerate
+requests
 groq
 PyPDF2

@@ -24,14 +24,12 @@ Steps:
 2. If non-English, AI4Bharat IndicBART translates it to English.
 3. Text is split into chunks and converted to embeddings.
 4. Relevant chunks are retrieved using semantic search.
-5. Google Flan-T5 generates a complete answer.
+5. LLaMA 3.3 70B via Groq generates a complete, accurate answer.
 6. The answer is highlighted in the PDF.
 """)
 
-# ── Initialize session state ──────────────────────────────────────────────
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
-
 if "highlights" not in st.session_state:
     st.session_state.highlights = None
 
@@ -43,12 +41,8 @@ if uploaded_file:
     # ── 1. Process PDF ────────────────────────────────────────────────────
     file_id = uploaded_file.name + str(len(pdf_bytes))
     if st.session_state.get("file_id") != file_id:
-
-        # Clear everything when a new PDF is uploaded
         st.session_state.chat_history = []
         st.session_state.highlights = None
-        for key in ["last_question", "last_answer", "last_confidence"]:
-            st.session_state.pop(key, None)
 
         with st.spinner("Extracting text..."):
             raw_text = extract_text(pdf_bytes)
@@ -81,7 +75,7 @@ if uploaded_file:
         else:
             st.info("🌐 PDF language: **English**")
 
-    # ── 2. Layout: PDF on left, Chat on right ────────────────────────────
+    # ── 2. Layout ─────────────────────────────────────────────────────────
     col_pdf, col_chat = st.columns([1.2, 1])
 
     with col_pdf:
@@ -99,65 +93,51 @@ if uploaded_file:
                 }
                 for h in highlights
             ]
-            pdf_viewer(
-                input=pdf_bytes,
-                width=500,
-                height=700,
-                annotations=annotations,
-            )
+            pdf_viewer(input=pdf_bytes, width=500, height=700, annotations=annotations)
         else:
             pdf_viewer(input=pdf_bytes, width=500, height=700)
 
     with col_chat:
         st.subheader("Chat")
 
-        # ── Chat history display ──────────────────────────────────────────
         chat_container = st.container(height=500)
         with chat_container:
             if not st.session_state.chat_history:
                 st.caption("Ask a question about the PDF to get started.")
             else:
                 for entry in st.session_state.chat_history:
-                    # User message
                     with st.chat_message("user"):
                         st.write(entry["question"])
-                    # Assistant message
                     with st.chat_message("assistant"):
                         st.write(entry["answer"])
                         st.caption(f"Confidence: {entry['confidence']}%")
                         if entry.get("highlight_page"):
                             st.caption(f"📌 Highlighted on page {entry['highlight_page']}")
 
-        # ── Input at the bottom ───────────────────────────────────────────
         question = st.chat_input("Ask a question about the PDF...")
 
         if question:
             if "chunks" not in st.session_state:
                 st.warning("PDF is still processing. Please wait.")
             else:
-                with st.spinner("Finding answer..."):
+                with st.spinner("Thinking..."):
                     results = search_chunks(
                         question,
                         st.session_state.chunks,
                         st.session_state.embeddings,
                     )
-                    answer, confidence = ask_model(question, results)
+                    answer, confidence = ask_model(question, results)  # no api_key needed
                     highlights = find_highlight_coords(pdf_bytes, answer)
 
-                # Save highlights for PDF viewer
                 st.session_state.highlights = highlights
-
-                # Append to chat history
                 st.session_state.chat_history.append({
                     "question": question,
                     "answer": answer,
                     "confidence": confidence,
                     "highlight_page": highlights[0]["page"] if highlights else None,
                 })
-
                 st.rerun()
 
-        # ── Clear history button ──────────────────────────────────────────
         if st.session_state.chat_history:
             if st.button("🗑️ Clear Chat History"):
                 st.session_state.chat_history = []
