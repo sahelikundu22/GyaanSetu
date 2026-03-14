@@ -6,15 +6,13 @@ from typing import List, Tuple
 from sentence_transformers import SentenceTransformer
 
 
-# ── Embedding Model ───────────────────────────────────────────────────────
-
+# EMBEDDING MODEL
 @st.cache_resource
 def load_embedding_model() -> SentenceTransformer:
     return SentenceTransformer("all-MiniLM-L6-v2")
 
 
-# ── PDF Reader ────────────────────────────────────────────────────────────
-
+# PDF READER
 def extract_text(pdf_bytes: bytes) -> str:
     text_parts = []
     with pdfplumber.open(io.BytesIO(pdf_bytes)) as pdf:
@@ -25,8 +23,7 @@ def extract_text(pdf_bytes: bytes) -> str:
     return "\n\n".join(text_parts)
 
 
-# ── Chunking ──────────────────────────────────────────────────────────────
-
+# CHUNKING
 def split_text(text: str, chunk_size: int = 150, overlap: int = 30) -> List[str]:
     if not text.strip():
         return []
@@ -40,15 +37,13 @@ def split_text(text: str, chunk_size: int = 150, overlap: int = 30) -> List[str]
     return chunks
 
 
-# ── Embeddings ────────────────────────────────────────────────────────────
-
+# EMBEDDINGS
 def create_embeddings(chunks: List[str]) -> np.ndarray:
     model = load_embedding_model()
     return model.encode(chunks, show_progress_bar=False, convert_to_numpy=True)
 
 
-# ── Full Pipeline (from bytes) ────────────────────────────────────────────
-
+# FULL PIPELINES FROM BYTES
 def process_pdf(pdf_bytes: bytes) -> Tuple[str, List[str], np.ndarray]:
     raw_text   = extract_text(pdf_bytes)
     chunks     = split_text(raw_text)
@@ -56,8 +51,7 @@ def process_pdf(pdf_bytes: bytes) -> Tuple[str, List[str], np.ndarray]:
     return raw_text, chunks, embeddings
 
 
-# ── Partial Pipeline (from text) ─────────────────────────────────────────
-
+# PARTIAL PIPELINES FROM TEXT
 def process_text(text: str) -> Tuple[List[str], np.ndarray]:
     chunks     = split_text(text)
     embeddings = create_embeddings(chunks)
