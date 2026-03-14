@@ -41,13 +41,13 @@ Based on the context, provide a detailed answer in multiple sentences:"""
             outputs = model.generate(
                 input_ids=inputs.input_ids,
                 attention_mask=inputs.attention_mask,
-                max_new_tokens=250,
-                min_new_tokens=40,
-                num_beams=4,
-                early_stopping=True,  
-                no_repeat_ngram_size=3,
-                repetition_penalty=1.3,
-                length_penalty=2.0,
+                max_new_tokens=150,
+                min_new_tokens=30,
+                num_beams=3,           # reduced from 5 — faster
+                early_stopping=True,
+                no_repeat_ngram_size=2,
+                repetition_penalty=1.2,
+                length_penalty=1.5,
                 output_scores=True,
                 return_dict_in_generate=True,
             )

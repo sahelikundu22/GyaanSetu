@@ -1,7 +1,4 @@
 import streamlit as st
-import tempfile
-import os
-
 from sidebar import render_sidebar
 from pdf_qna_engine.pdf_reader import extract_text
 from pdf_qna_engine.chunking import split_text
@@ -9,6 +6,7 @@ from pdf_qna_engine.embeddings import create_embeddings
 from pdf_qna_engine.search import search_chunks
 from pdf_qna_engine.llm import ask_model
 from pdf_qna_engine.translator import translate_to_english_if_needed, detect_language
+from pdf_qna_engine.highlighter import find_highlight_coords
 from streamlit_pdf_viewer import pdf_viewer
 
 st.set_page_config(page_title="PDF Q&A", page_icon="📄")
@@ -27,20 +25,28 @@ Steps:
 3. Text is split into chunks and converted to embeddings.
 4. Relevant chunks are retrieved using semantic search.
 5. Google Flan-T5 generates a complete answer.
+6. The answer is highlighted in the PDF.
 """)
+
+# ── Initialize session state ──────────────────────────────────────────────
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = []
+
+if "highlights" not in st.session_state:
+    st.session_state.highlights = None
 
 uploaded_file = st.file_uploader("Upload a PDF", type=["pdf"])
 
 if uploaded_file:
     pdf_bytes = uploaded_file.getvalue()
 
-    st.subheader("PDF Preview")
-    pdf_viewer(input=pdf_bytes, width=700, height=600)
-
+    # ── 1. Process PDF ────────────────────────────────────────────────────
     file_id = uploaded_file.name + str(len(pdf_bytes))
     if st.session_state.get("file_id") != file_id:
 
-        # Clear previous answers when new PDF is uploaded
+        # Clear everything when a new PDF is uploaded
+        st.session_state.chat_history = []
+        st.session_state.highlights = None
         for key in ["last_question", "last_answer", "last_confidence"]:
             st.session_state.pop(key, None)
 
@@ -50,7 +56,7 @@ if uploaded_file:
         detected_lang = detect_language(raw_text)
 
         if detected_lang != "en":
-            st.info(f"🌐 Detected language: **{detected_lang.upper()}** — translating to English using AI4Bharat IndicBART...")
+            st.info(f"🌐 Detected language: **{detected_lang.upper()}** — translating using AI4Bharat IndicBART...")
             with st.spinner("Translating PDF content..."):
                 translated_text, _ = translate_to_english_if_needed(raw_text)
             st.success("✅ Translation complete!")
@@ -75,38 +81,88 @@ if uploaded_file:
         else:
             st.info("🌐 PDF language: **English**")
 
-    st.markdown("---")
-    st.subheader("Ask a Question")
+    # ── 2. Layout: PDF on left, Chat on right ────────────────────────────
+    col_pdf, col_chat = st.columns([1.2, 1])
 
-    question = st.text_input("Type your question about the PDF")
-
-    if st.button("Get Answer"):
-        if not question.strip():
-            st.warning("Please enter a question.")
-        elif "chunks" not in st.session_state:
-            st.warning("PDF is still processing. Please wait.")
+    with col_pdf:
+        st.subheader("PDF Preview")
+        highlights = st.session_state.get("highlights")
+        if highlights:
+            annotations = [
+                {
+                    "page": h["page"],
+                    "x": h["x0"],
+                    "y": h["y0"],
+                    "width": h["x1"] - h["x0"],
+                    "height": h["y1"] - h["y0"],
+                    "color": "yellow",
+                }
+                for h in highlights
+            ]
+            pdf_viewer(
+                input=pdf_bytes,
+                width=500,
+                height=700,
+                annotations=annotations,
+            )
         else:
-            with st.spinner("Finding answer..."):
-                results = search_chunks(
-                    question,
-                    st.session_state.chunks,
-                    st.session_state.embeddings,
-                )
-                answer, confidence = ask_model(question, results)
+            pdf_viewer(input=pdf_bytes, width=500, height=700)
 
-            st.session_state.last_question = question
-            st.session_state.last_answer = answer
-            st.session_state.last_confidence = confidence
+    with col_chat:
+        st.subheader("Chat")
 
-    # Only show answer if it matches the current question
-    if (
-        "last_answer" in st.session_state
-        and "last_question" in st.session_state
-        and st.session_state.get("last_question") == question
-    ):
-        st.subheader("Answer")
-        st.write(st.session_state.last_answer)
-        st.caption(f"Confidence: {st.session_state.last_confidence}%")
+        # ── Chat history display ──────────────────────────────────────────
+        chat_container = st.container(height=500)
+        with chat_container:
+            if not st.session_state.chat_history:
+                st.caption("Ask a question about the PDF to get started.")
+            else:
+                for entry in st.session_state.chat_history:
+                    # User message
+                    with st.chat_message("user"):
+                        st.write(entry["question"])
+                    # Assistant message
+                    with st.chat_message("assistant"):
+                        st.write(entry["answer"])
+                        st.caption(f"Confidence: {entry['confidence']}%")
+                        if entry.get("highlight_page"):
+                            st.caption(f"📌 Highlighted on page {entry['highlight_page']}")
+
+        # ── Input at the bottom ───────────────────────────────────────────
+        question = st.chat_input("Ask a question about the PDF...")
+
+        if question:
+            if "chunks" not in st.session_state:
+                st.warning("PDF is still processing. Please wait.")
+            else:
+                with st.spinner("Finding answer..."):
+                    results = search_chunks(
+                        question,
+                        st.session_state.chunks,
+                        st.session_state.embeddings,
+                    )
+                    answer, confidence = ask_model(question, results)
+                    highlights = find_highlight_coords(pdf_bytes, answer)
+
+                # Save highlights for PDF viewer
+                st.session_state.highlights = highlights
+
+                # Append to chat history
+                st.session_state.chat_history.append({
+                    "question": question,
+                    "answer": answer,
+                    "confidence": confidence,
+                    "highlight_page": highlights[0]["page"] if highlights else None,
+                })
+
+                st.rerun()
+
+        # ── Clear history button ──────────────────────────────────────────
+        if st.session_state.chat_history:
+            if st.button("🗑️ Clear Chat History"):
+                st.session_state.chat_history = []
+                st.session_state.highlights = None
+                st.rerun()
 
 else:
     st.info("👆 Upload a PDF to get started.")
