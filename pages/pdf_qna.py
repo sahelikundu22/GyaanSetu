@@ -1,10 +1,10 @@
 import streamlit as st
 from sidebar import render_sidebar
-from pdf_qna_engine.processor import extract_text, process_text
 from pdf_qna_engine.search import search_chunks
 from pdf_qna_engine.llm import ask_model
 from pdf_qna_engine.highlighter import find_highlight_coords
 from streamlit_pdf_viewer import pdf_viewer
+from pdf_qna_engine.processor import extract_text, process_text
 
 st.set_page_config(page_title="PDF Q&A", page_icon="📄", layout="wide")
 
@@ -65,14 +65,14 @@ if uploaded_file:
     with col_chat:
         st.subheader("Chat")
 
-        # Process PDF once per upload
+        # Process PDF once per upload 
         file_id = uploaded_file.name + str(len(pdf_bytes))
         if st.session_state.get("file_id") != file_id:
             st.session_state.chat_history = []
             st.session_state.highlights   = None
 
             with st.spinner("Processing PDF..."):
-                raw_text           = extract_text(pdf_bytes)
+                raw_text           = extract_text(uploaded_file)
                 chunks, embeddings = process_text(raw_text)
 
             st.session_state.raw_text     = raw_text

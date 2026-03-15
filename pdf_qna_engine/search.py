@@ -1,6 +1,6 @@
 from typing import List, Tuple
 import numpy as np
-from pdf_qna_engine.processor import load_embedding_model
+from pdf_qna_engine.model import load_embedding_model
 
 
 def cosine_similarity(a: np.ndarray, b: np.ndarray) -> np.ndarray:
@@ -15,10 +15,10 @@ def search_chunks(
     embeddings: np.ndarray,
     top_k: int = 5
 ) -> Tuple[List[str], List[float]]:
-    model            = load_embedding_model()
-    query_embedding  = model.encode([question], convert_to_numpy=True)[0]
-    scores           = cosine_similarity(query_embedding, embeddings)
-    top_indices      = np.argsort(scores)[::-1][:top_k]
-    top_chunks       = [chunks[i] for i in top_indices]
-    top_scores       = [round(float(scores[i]), 4) for i in top_indices]
+    model           = load_embedding_model()
+    query_embedding = model.encode([question], convert_to_numpy=True)[0]
+    scores          = cosine_similarity(query_embedding, embeddings)
+    top_indices     = np.argsort(scores)[::-1][:top_k]
+    top_chunks      = [chunks[i] for i in top_indices]
+    top_scores      = [round(float(scores[i]), 4) for i in top_indices]
     return top_chunks, top_scores
