@@ -21,9 +21,18 @@
     "class_6": {
       "subjects": {
         "Science (Curiosity)": [
-          { "chapter": "The Wonderful World of Plants", "yt": "https://youtu.be/-ky0FLjhrGA?si=SG-xOmGeKMys41R1" },
-          { "chapter": "Components of Food", "yt": "https://youtu.be/yEb5pDrt_yY?si=ezoF_C4Z4sUoxCF4" },
-          { "chapter": "Exploring Magnets", "yt": "https://youtu.be/J1zc-RlLRTg?si=IGoRDKmaoHh-jhsL" }
+          { "chapter": "MINDFUL EATING", "yt": "https://youtu.be/RHSQS8yHiVo?si=9cAF6v42JZjgAnz3" },
+          { "chapter": "EXPLORING MAGNETS", "yt": "https://youtu.be/ySinq_R47NI?si=YTY7lZXKe_chLFCW" },
+          { "chapter": "MEASUREMENT OF LENGTH AND MOTION", "yt": "https://youtu.be/htEkvL3jamI?si=dlIX0PcxovPLjxR5"},
+          { "chapter": "MATERIALS AROUND US", "yt": "https://youtu.be/l6JgBOV9S0g?si=_1H7AvUW9c2lWfyM"},
+          { "chapter": "TEMPERATURE AND ITS MEASUREMENT", "yt": "https://youtu.be/vYW2fhePY1A?si=iEbBQiTQBPSCS7T6"},
+          { "chapter": "A JOURNEY THROUGH STATES OF WATER", "yt": "https://youtu.be/stYIw3KwpgI?si=gSLfY4NmvCOzAKIH"},
+          { "chapter": "METHODS OF SEPARATION", "yt": "https://youtu.be/ke_0EeOYQgM?si=Wxtk2g8B3bty9bFw"},
+          { "chapter": "LIVING CREATURES", "yt": "https://youtu.be/zZQincfqemc?si=oLH9qhXkDCYjnrik"},
+          { "chapter": "NATURE'S TREASURERS", "yt": "https://youtu.be/a-3txHGMY3k?si=tRC3HcT0ggBg0pBW"},
+          { "chapter": "BEYOND EARTH", "yt": "https://youtu.be/8HGvIrc547k?si=ZG3qukoXzJwZac9r"},
+          { "chapter": "THE WONDERFUL WORLD OF SCIENCE", "yt": "https://youtu.be/yxwvz6TNM0s?si=LZVh3AcBoqW05_hL" },
+          { "chapter": "DIVERSITY IN THE LIVING WORLD", "yt": "https://youtu.be/wPjAZ6ejolY?si=-0gCyDLwVp981yR5" }
         ],
         "Mathematics (Ganita Prakash)": [
           { "chapter": "PATTERNS IN MATHEMATICS", "yt": "https://youtu.be/zTDMWrCV0bo?si=d1-pdOqQkXptssJG" },

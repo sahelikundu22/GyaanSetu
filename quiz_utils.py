@@ -1,18 +1,14 @@
-import streamlit as st
 from groq import Groq
 from PyPDF2 import PdfReader
+import streamlit as st
 import json
 import re
 
 
-def generate_ai_quiz(pdf_file, num_q=5):
-    """
-    Generate quiz questions from a PDF using Groq Llama3
-    """
+def generate_ai_quiz(pdf_path, num_q=10):
 
     try:
-        # ---------- Extract text from PDF ----------
-        reader = PdfReader(pdf_file)
+        reader = PdfReader(pdf_path)
 
         text = ""
         pages_to_read = min(6, len(reader.pages))
@@ -23,11 +19,10 @@ def generate_ai_quiz(pdf_file, num_q=5):
                 text += page_text + " "
 
         if not text.strip():
-            return {"error": "Could not read text from PDF"}
+            return {"error": "Could not read PDF content"}
 
         context = text[:3500]
 
-        # ---------- Groq client ----------
         client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 
         prompt = f"""
@@ -53,8 +48,8 @@ def generate_ai_quiz(pdf_file, num_q=5):
         }}
         ]
         """
+      
 
-        # ---------- AI Request ----------
         response = client.chat.completions.create(
             model="llama-3.1-8b-instant",
             messages=[
@@ -66,15 +61,13 @@ def generate_ai_quiz(pdf_file, num_q=5):
 
         result = response.choices[0].message.content
 
-        # ---------- Clean JSON ----------
+        # Clean JSON
         result = re.sub(r"```json|```", "", result).strip()
 
         start = result.find("[")
         end = result.rfind("]") + 1
 
-        json_str = result[start:end]
-
-        quiz_data = json.loads(json_str)
+        quiz_data = json.loads(result[start:end])
 
         return quiz_data
 

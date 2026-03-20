@@ -14,7 +14,7 @@ st.set_page_config(page_title="AI Quiz", layout="wide")
 render_sidebar()
 
 st.title("🤖 AI Quiz Generator")
-st.write("Upload a chapter PDF to generate a quiz.")
+st.write("Select the subject and chapter from sidebar to generate quiz.")
 
 # ---------- CSS FOR QUIZ UI ----------
 st.markdown("""
@@ -46,26 +46,39 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 
-# ---------- Upload PDF ----------
+# ---------- Generate Quiz from Study Material ----------
 
-uploaded_pdf = st.file_uploader("Upload Chapter PDF", type="pdf")
+subject = st.session_state.get("selected_subject", "")
+chapter = st.session_state.get("selected_chapter", "")
+
+pdf_path = None
+
+# Find PDF same way as study_material page
+sub_folder = os.path.join("study_material", subject)
+
+if os.path.exists(sub_folder):
+    target = chapter.lower().replace(" ", "")
+    for f in os.listdir(sub_folder):
+        if f.lower().replace(" ", "").startswith(target):
+            pdf_path = os.path.join(sub_folder, f)
+            break
 
 
-# ---------- Generate Quiz ----------
+if st.button("🧠 Generate Quiz", use_container_width=True):
 
-if uploaded_pdf and st.button("Generate Quiz", use_container_width=True):
+    if not pdf_path:
+        st.error("❌ PDF not found for this chapter")
+    else:
+        with st.spinner("Generating quiz from chapter..."):
 
-    with st.spinner("Generating quiz from PDF..."):
+            quiz = generate_ai_quiz(open(pdf_path, "rb"), num_q=10)
 
-        quiz = generate_ai_quiz(uploaded_pdf, num_q=10)
-
-        if isinstance(quiz, dict) and "error" in quiz:
-            st.error(quiz["error"])
-        else:
-            st.session_state.ai_quiz = quiz
-            st.session_state.quiz_submitted = False
-            st.success("✅ Quiz generated successfully!")
-
+            if isinstance(quiz, dict) and "error" in quiz:
+                st.error(quiz["error"])
+            else:
+                st.session_state.ai_quiz = quiz
+                st.session_state.quiz_submitted = False
+                st.success("✅ Quiz generated successfully!")
 
 # ---------- SHOW QUIZ ----------
 

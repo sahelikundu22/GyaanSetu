@@ -12,61 +12,64 @@ st.set_page_config(
 # Initialize database
 init_db()
 
-# st.title("GyaanSetu")
-
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
 
-# MAIN UI
+# ---------- LOGIN PAGE ----------
 if not st.session_state.logged_in:
-    # Not registered view
-    
-    st.markdown(
-        "<h1 style='text-align:center;'>GyaanSetu</h1>",
-        unsafe_allow_html=True
-    )
 
-    st.markdown(
-        "<h4 style='text-align:center; color:gray;'>Connecting Ambition with Education</h4>",
-        unsafe_allow_html=True
-    )
-    
-    st.divider()
-    
-
-    # YOUTUBE INPUT
-    youtube_url = st.text_input(
-        "🔗 Enter YouTube URL",
-        placeholder="https://www.youtube.com/watch?v=..."
-    )
-
-    col1, col2, col3 = st.columns([3, 1, 3])
-    with col2:
-        if st.button("Generate Transcript"):
-            if youtube_url:
-                st.write("Processing:", youtube_url)
-                # fn call
-            else:
-                st.warning("Please enter a YouTube URL")
-
-    st.divider()
-
-
+    # Background style
     st.markdown("""
-        <h3> Generic resources only take you so far. By creating your GyaanSetu profile, 
-            you gain exclusive access to customized academic assets and strategic 
-            career guidance. Let us provide the blueprint; you provide the ambition. </h3>
-        """, unsafe_allow_html=True)
+    <style>
+    .main {
+        background: linear-gradient(to right, #0f172a, #1e293b);
+    }
 
+    .title {
+        text-align:center;
+        font-size:60px;
+        font-weight:700;
+        color:#ffffff;
+    }
 
-    col1, col2, col3 = st.columns([3, 1, 3])
+    .subtitle {
+        text-align:center;
+        font-size:20px;
+        color:#cbd5e1;
+    }
+
+    </style>
+    """, unsafe_allow_html=True)
+    st.markdown("<div class='title'>📚 GyaanSetu</div>", unsafe_allow_html=True)
+    st.markdown("<div class='subtitle'>Connecting Ambition with Education</div>", unsafe_allow_html=True)
+
+    st.divider()
+
+    col1, col2, col3 = st.columns([2,3,2])
 
     with col2:
-        if st.button("Sign Up / Login", use_container_width=True):
+        st.markdown("<div class='box'>", unsafe_allow_html=True)
+
+        st.markdown("### 🚀 Get Started")
+
+        st.write("Create your profile to unlock personalized learning and AI-powered tools.")
+
+        if st.button("🔐 Sign Up / Login", use_container_width=True):
             auth_dialog()
 
+        st.markdown("</div>", unsafe_allow_html=True)
 
-# Dashboard 
+    st.divider()
+
+    st.markdown("""
+        <div style='text-align:center; font-size:18px; color:#555;'>
+        Generic resources only take you so far. By creating your GyaanSetu profile, 
+        you gain access to customized academic assets and smart learning tools.
+        </div>
+    """, unsafe_allow_html=True)
+
+
+# ---------- DASHBOARD ----------
 else:
     dashboard()

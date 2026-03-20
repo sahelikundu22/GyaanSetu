@@ -70,3 +70,18 @@ def save_quiz_score(username, subject, chapter, score, total):
 
     connection.commit()
     connection.close()
+
+def get_scores_by_user(username):
+
+    connection = sqlite3.connect("gyaanset.db")
+    cursor = connection.cursor()
+
+    cursor.execute("""SELECT subject, chapter, score, total
+        FROM quiz_scores
+        WHERE username = ?
+        ORDER BY id DESC""", (username,))
+
+    data = cursor.fetchall()
+    connection.close()
+
+    return data
