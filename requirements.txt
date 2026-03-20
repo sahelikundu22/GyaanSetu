@@ -1,0 +1,12 @@
+streamlit
+streamlit-pdf-viewer
+pdfplumber
+sentence-transformers
+transformers
+torch
+numpy
+langdetect
+sentencepiece
+requests
+groq
+PyPDF2
