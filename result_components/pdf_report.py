@@ -2,96 +2,150 @@ import streamlit as st
 import base64
 from datetime import datetime
 from fpdf import FPDF
+import matplotlib.pyplot as plt
+import tempfile
+import os
+import numpy as np
 
-class PDF(FPDF):
-    def header(self):
-        self.set_font('Arial', 'B', 16)
-        self.cell(0, 10, 'Student Performance Report', 0, 1, 'C')
-        self.set_font('Arial', '', 10)
-        self.cell(0, 5, f'Generated: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}', 0, 1, 'C')
-        self.ln(10)
-    
-    def footer(self):
-        self.set_y(-15)
-        self.set_font('Arial', 'I', 8)
-        self.cell(0, 10, f'Page {self.page_no()}', 0, 0, 'C')
+def save_chart_temp(fig):
+    """Save matplotlib figure to temporary file"""
+    with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as tmp:
+        fig.savefig(tmp.name, format='png', dpi=100, bbox_inches='tight')
+        return tmp.name
 
-def render_pdf_report(username, selected_subject, total_attempts, total_questions, total_score, accuracy, chapter_stats):
-    """Render PDF report generation section"""
-    st.subheader("📄 Generate PDF Report")
+def render_pdf_report(username, subject_stats, selected_subject, accuracy, chapter_stats, weak, developing):
+    st.subheader("📄 Download Report")
     
-    # Calculate weak and developing chapters
-    weak_chapters = [stat["Chapter"] for stat in chapter_stats if stat["Average"] < 50]
-    developing_chapters = [stat["Chapter"] for stat in chapter_stats if 50 <= stat["Average"] < 70]
-    
-    if st.button("📄 Generate PDF Report"):
-        pdf = PDF()
+    if st.button("Generate PDF Report"):
+        pdf = FPDF()
+        temp_files = []
+        
+        # Page 1: Subject Analysis
         pdf.add_page()
-        
-        # Student info
         pdf.set_font('Arial', 'B', 14)
-        pdf.cell(0, 10, f'Student: {username}', 0, 1)
-        pdf.cell(0, 10, f'Subject: {selected_subject}', 0, 1)
+        pdf.cell(0, 10, f'Report - {username}', 0, 1, 'C')
+        pdf.set_font('Arial', '', 8)
+        pdf.cell(0, 5, datetime.now().strftime("%Y-%m-%d"), 0, 1, 'C')
         pdf.ln(5)
         
-        # Overall performance
+        # Subject table
+        pdf.set_font('Arial', 'B', 10)
+        pdf.cell(70, 8, 'Subject', 1, 0)
+        pdf.cell(30, 8, 'Accuracy', 1, 0)
+        pdf.cell(40, 8, 'Score', 1, 0)
+        pdf.cell(40, 8, 'Status', 1, 1)
+        
+        pdf.set_font('Arial', '', 8)
+        for s in subject_stats:
+            status_text = "Attempted" if s['Status'] == "✅" else "Not Attempted"
+            pdf.cell(70, 6, s['Subject'], 1, 0)
+            pdf.cell(30, 6, s['Accuracy'], 1, 0, 'C')
+            pdf.cell(40, 6, s['Score'], 1, 0, 'C')
+            pdf.cell(40, 6, status_text, 1, 1, 'C')
+        
+        # Subject chart
+        fig, ax = plt.subplots(figsize=(8, 3))
+        subs = [s["Subject"] for s in subject_stats if s["Status"] == "✅"]
+        accs = [float(s["Accuracy"].strip("%")) for s in subject_stats if s["Status"] == "✅"]
+        if subs:
+            colors = ['#4CAF50' if a>=70 else '#FF9800' if a>=50 else '#F44336' for a in accs]
+            ax.bar(subs, accs, color=colors)
+            ax.axhline(y=50, color='gray', linestyle='--')
+            ax.axhline(y=70, color='green', linestyle='--')
+            ax.set_ylim(0, 100)
+            plt.xticks(rotation=45, ha='right')
+            plt.tight_layout()
+            
+            temp_file = save_chart_temp(fig)
+            temp_files.append(temp_file)
+            pdf.image(temp_file, x=10, y=pdf.get_y()+5, w=190)
+        plt.close(fig)
+        
+        # Page 2: Chapter Details
+        pdf.add_page()
         pdf.set_font('Arial', 'B', 12)
-        pdf.cell(0, 10, 'Overall Performance', 0, 1)
-        pdf.set_font('Arial', '', 10)
-        pdf.cell(0, 8, f'Total Attempts: {total_attempts}', 0, 1)
-        pdf.cell(0, 8, f'Questions Answered: {total_questions}', 0, 1)
-        pdf.cell(0, 8, f'Correct Answers: {total_score}/{total_questions}', 0, 1)
-        pdf.cell(0, 8, f'Overall Accuracy: {accuracy:.1f}%', 0, 1)
+        pdf.cell(0, 8, f'{selected_subject} - Details', 0, 1)
+        pdf.set_font('Arial', '', 8)
+        pdf.cell(0, 6, f'Overall Accuracy: {accuracy:.1f}%', 0, 1)
+        
+        # Chapter table
+        pdf.set_font('Arial', 'B', 9)
+        pdf.cell(70, 8, 'Chapter', 1, 0)
+        pdf.cell(35, 8, 'Avg %', 1, 0)
+        pdf.cell(35, 8, 'Latest %', 1, 0)
+        pdf.cell(40, 8, 'Attempts', 1, 1)
+        
+        pdf.set_font('Arial', '', 8)
+        for s in chapter_stats:
+            pdf.cell(70, 6, s['Chapter'], 1, 0)
+            pdf.cell(35, 6, f"{s['Average']:.1f}%", 1, 0, 'C')
+            pdf.cell(35, 6, f"{s['Latest']:.1f}%", 1, 0, 'C')
+            pdf.cell(40, 6, str(s['Attempts']), 1, 1, 'C')
+        
+        # Chapter chart
+        fig2, ax2 = plt.subplots(figsize=(8, 3))
+        chapters = [s["Chapter"][:12] for s in chapter_stats]
+        avg = [s["Average"] for s in chapter_stats]
+        latest = [s["Latest"] for s in chapter_stats]
+        x = np.arange(len(chapters))
+        ax2.bar(x-0.2, avg, 0.4, label='Avg', color='#FF9800')
+        ax2.bar(x+0.2, latest, 0.4, label='Latest', color='#2196F3')
+        ax2.axhline(y=50, color='gray', linestyle='--')
+        ax2.set_ylim(0, 100)
+        ax2.set_xticks(x)
+        ax2.set_xticklabels(chapters, rotation=45, fontsize=7)
+        ax2.legend(fontsize=8)
+        plt.tight_layout()
+        
+        temp_file2 = save_chart_temp(fig2)
+        temp_files.append(temp_file2)
+        pdf.image(temp_file2, x=10, y=pdf.get_y()+5, w=190)
+        plt.close(fig2)
+        
+        # Page 3: Recommendations
+        pdf.add_page()
+        pdf.set_font('Arial', 'B', 12)
+        pdf.cell(0, 8, 'Recommendations', 0, 1)
+        
+        pdf.set_font('Arial', '', 9)
+        if weak:
+            pdf.set_text_color(255, 0, 0)
+            weak_text = ', '.join(weak[:3])
+            pdf.cell(0, 6, f'Need Attention: {weak_text}', 0, 1)
+        if developing:
+            pdf.set_text_color(255, 165, 0)
+            dev_text = ', '.join(developing[:3])
+            pdf.cell(0, 6, f'Developing: {dev_text}', 0, 1)
+        pdf.set_text_color(0, 0, 0)
+        
+        not_attempted = [s["Subject"] for s in subject_stats if s["Status"] == "❌"]
+        if not_attempted:
+            not_text = ', '.join(not_attempted[:3])
+            pdf.cell(0, 6, f'Not Attempted: {not_text}', 0, 1)
+        
         pdf.ln(5)
+        pdf.set_font('Arial', 'I', 9)
+        pdf.cell(0, 6, 'Keep practicing! Consistent effort leads to improvement.', 0, 1, 'C')
         
-        # Chapter-wise performance
-        pdf.set_font('Arial', 'B', 12)
-        pdf.cell(0, 10, 'Chapter-wise Performance', 0, 1)
-        pdf.set_font('Arial', '', 10)
+        # Save PDF as bytes
+        pdf_output = pdf.output(dest='S')
         
-        for stat in chapter_stats:
-            pdf.cell(0, 8, f"{stat['Chapter']}:", 0, 1)
-            pdf.cell(0, 6, f"  Average: {stat['Average']:.1f}% | Latest: {stat['Latest']:.1f}% | Best: {stat['Best']:.1f}%", 0, 1)
-            pdf.cell(0, 6, f"  Status: {stat['Status']}", 0, 1)
-            pdf.ln(2)
+        # Convert to bytes if it's a string
+        if isinstance(pdf_output, str):
+            pdf_bytes = pdf_output.encode('latin1')
+        else:
+            pdf_bytes = pdf_output
         
-        # Weak areas
-        if weak_chapters or developing_chapters:
-            pdf.ln(5)
-            pdf.set_font('Arial', 'B', 12)
-            pdf.cell(0, 10, 'Areas for Improvement', 0, 1)
-            pdf.set_font('Arial', '', 10)
-            
-            if weak_chapters:
-                pdf.set_text_color(255, 0, 0)
-                pdf.cell(0, 8, 'Critical Focus Areas:', 0, 1)
-                for ch in weak_chapters:
-                    pdf.cell(0, 6, f'  - {ch}', 0, 1)
-            
-            if developing_chapters:
-                pdf.set_text_color(255, 165, 0)
-                pdf.cell(0, 8, 'Developing Areas:', 0, 1)
-                for ch in developing_chapters:
-                    pdf.cell(0, 6, f'  - {ch}', 0, 1)
-            
-            pdf.set_text_color(0, 0, 0)
+        # Clean up temp files
+        for temp_file in temp_files:
+            try:
+                os.unlink(temp_file)
+            except:
+                pass
         
-        # Recommendations
-        pdf.ln(5)
-        pdf.set_font('Arial', 'B', 12)
-        pdf.cell(0, 10, 'Recommendations', 0, 1)
-        pdf.set_font('Arial', '', 10)
+        # Encode to base64
+        b64 = base64.b64encode(pdf_bytes).decode()
         
-        if weak_chapters:
-            pdf.multi_cell(0, 6, '- Focus on weak chapters: Review fundamentals and retake quizzes')
-        if developing_chapters:
-            pdf.multi_cell(0, 6, '- Regular practice for developing chapters to achieve mastery')
-        if not weak_chapters and not developing_chapters:
-            pdf.multi_cell(0, 6, '- Excellent performance! Consider helping peers or exploring advanced topics')
-        
-        # Save PDF
-        pdf_output = pdf.output(dest='S').encode('latin1')
-        b64 = base64.b64encode(pdf_output).decode()
-        href = f'<a href="data:application/octet-stream;base64,{b64}" download="{username}_{selected_subject}_report.pdf">📥 Download PDF Report</a>'
-        st.markdown(href, unsafe_allow_html=True)
-        st.success("✅ PDF Report generated successfully!")
+        # Download button
+        st.markdown(f'<a href="data:application/octet-stream;base64,{b64}" download="{username}_report.pdf">📥 Download PDF Report</a>', unsafe_allow_html=True)
+        st.success("✅ Report ready!")
