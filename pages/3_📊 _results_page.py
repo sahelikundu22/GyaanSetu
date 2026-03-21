@@ -12,7 +12,7 @@ from result_components.comparison import render_comparison
 from result_components.pdf_report import render_pdf_report
 from result_components.subject_analysis import render_subject_analysis
 
-st.set_page_config(page_title="Dashboard", layout="wide")
+st.set_page_config(page_title="Report", layout="wide")
 render_sidebar()
 st.title("📊 Student Report")
 
