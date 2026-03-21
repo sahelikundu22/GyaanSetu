@@ -11,3 +11,4 @@ requests
 groq
 PyPDF2
 matplotlib
+fpdf
