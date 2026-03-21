@@ -1,7 +1,9 @@
 # 📚 GyaanSetu  
 ### Connecting Ambition with Education
 
-GyaanSetu is an AI-powered learning platform for CBSE students (Classes 5–8). It combines study material, AI-generated quizzes, performance analytics, and a PDF question-answering assistant into a single Streamlit web application.
+GyaanSetu is an AI-powered learning platform designed for school students. It combines study material, AI-generated quizzes, performance analytics, and a PDF question-answering assistant into a single Streamlit web application.
+
+The platform is data-driven — curriculum, subjects, and chapters are controlled via structured JSON input and study material folders. While it currently uses CBSE-based content, the system is flexible and can be adapted to any educational board by simply modifying the input data.
 
 ---
 
@@ -12,6 +14,7 @@ GyaanSetu is an AI-powered learning platform for CBSE students (Classes 5–8). 
 - 🤖 AI quiz generator (10 MCQs from PDFs using LLaMA via Groq)  
 - 📊 Performance dashboard with charts, trends, and PDF reports  
 - 🔍 PDF Q&A with semantic search and highlighted answers  
+- 🔄 Easily adaptable to any board by changing curriculum JSON and PDFs  
 
 ---
 
@@ -82,12 +85,16 @@ Use a Gmail App Password instead of your normal password.
 
 ---
 
-### 4. Add study material
+### 4. Add / Customize Study Material
 
 Place PDFs inside:
 ```
 study_material/<Subject Name>/
 ```
+
+To adapt for a different board:
+- Modify `cbse_data.json` with your own curriculum structure  
+- Replace PDFs inside `study_material/` with relevant content  
 
 ---
 
@@ -129,4 +136,4 @@ Developed during **Spring Internship 2026**
 
 ## 📌 Summary
 
-GyaanSetu integrates AI, data processing, and interactive dashboards to create an intelligent and accessible learning platform for school students.
+GyaanSetu is a flexible, AI-driven learning platform where the curriculum is fully configurable through input data, making it adaptable to different education boards and use cases.
