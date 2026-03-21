@@ -16,9 +16,13 @@ class PDF(FPDF):
         self.set_font('Arial', 'I', 8)
         self.cell(0, 10, f'Page {self.page_no()}', 0, 0, 'C')
 
-def render_pdf_report(username, selected_subject, total_attempts, total_questions, total_score, accuracy, chapter_stats, weak_chapters, developing_chapters):
+def render_pdf_report(username, selected_subject, total_attempts, total_questions, total_score, accuracy, chapter_stats):
     """Render PDF report generation section"""
     st.subheader("📄 Generate PDF Report")
+    
+    # Calculate weak and developing chapters
+    weak_chapters = [stat["Chapter"] for stat in chapter_stats if stat["Average"] < 50]
+    developing_chapters = [stat["Chapter"] for stat in chapter_stats if 50 <= stat["Average"] < 70]
     
     if st.button("📄 Generate PDF Report"):
         pdf = PDF()
@@ -88,6 +92,6 @@ def render_pdf_report(username, selected_subject, total_attempts, total_question
         # Save PDF
         pdf_output = pdf.output(dest='S').encode('latin1')
         b64 = base64.b64encode(pdf_output).decode()
-        href = f'<a href="data:application/octet-stream;base64,{b64}" download="{username}_{selected_subject}_report.pdf">Download PDF Report</a>'
+        href = f'<a href="data:application/octet-stream;base64,{b64}" download="{username}_{selected_subject}_report.pdf">📥 Download PDF Report</a>'
         st.markdown(href, unsafe_allow_html=True)
         st.success("✅ PDF Report generated successfully!")
