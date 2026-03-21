@@ -1,104 +1,89 @@
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
-import json
-import os
+import json, os
+from collections import defaultdict
 
-def load_all_subjects():
-    """Load all subjects from CBSE JSON file"""
-    json_path = os.path.join(os.path.dirname(__file__), "..", "cbse_data.json")
-    
-    with open(json_path, 'r') as f:
-        data = json.load(f)
-    
-    all_subjects = []
-    for class_name, class_data in data["cbse_curriculum_2024_26"].items():
-        for subject in class_data["subjects"].keys():
-            if subject not in all_subjects:
-                all_subjects.append(subject)
-    
-    return all_subjects
+def load_subjects_for_class(user_class):
+    """Load subjects for specific class from CBSE JSON file"""
+    try:
+        with open(os.path.join(os.path.dirname(__file__), "..", "cbse_data.json")) as f:
+            data = json.load(f)
+        
+        class_key = f"class_{user_class}"
+        if class_key in data["cbse_curriculum_2024_26"]:
+            subjects = list(data["cbse_curriculum_2024_26"][class_key]["subjects"].keys())
+            return subjects
+        return []
+    except:
+        return []
 
-def render_subject_analysis(subject_wise):
-    """Render subject analysis with table and chart side by side"""
+def render_subject_analysis(subject_wise, chapter_wise, user_class):
     st.subheader("📊 Subject Analysis")
     
-    # Load all subjects from JSON
-    all_subjects = load_all_subjects()
+    # Load subjects for user's class
+    all_subs = load_subjects_for_class(user_class)
     
-    # Calculate stats for all subjects
-    subject_stats = []
-    for sub in all_subjects:
+    if not all_subs:
+        st.warning(f"No subjects found for Class {user_class}")
+        return []
+    
+    stats = []
+    for sub in all_subs:
         if sub in subject_wise:
             att = subject_wise[sub]
-            total_s = sum(s for s, t in att)
-            total_q = sum(t for s, t in att)
+            total_s = sum(s for s,t in att)
+            total_q = sum(t for s,t in att)
             acc = total_s/total_q*100 if total_q else 0
-            subject_stats.append({"Subject": sub, "Accuracy": f"{acc:.1f}%", "Score": f"{total_s}/{total_q}", "Status": "✅"})
+            
+            # Calculate chapter-wise average for this subject
+            chapters = chapter_wise.get(sub, {})
+            chapter_avgs = []
+            for ch, ch_att in chapters.items():
+                ch_avg = sum(s/t for s,t in ch_att) / len(ch_att) * 100
+                chapter_avgs.append(ch_avg)
+            overall_chapter_avg = sum(chapter_avgs) / len(chapter_avgs) if chapter_avgs else 0
+            
+            stats.append({
+                "Subject": sub, 
+                "Accuracy": f"{acc:.1f}%", 
+                "Chapter Avg": f"{overall_chapter_avg:.1f}%",
+                "Status": "✅"
+            })
         else:
-            subject_stats.append({"Subject": sub, "Accuracy": "-", "Score": "0/0", "Status": "❌"})
+            stats.append({
+                "Subject": sub, 
+                "Accuracy": "-", 
+                "Chapter Avg": "-",
+                "Status": "❌"
+            })
     
-    # Side by side
     col1, col2 = st.columns(2)
-    
     with col1:
-        st.markdown("**📋 Performance Table**")
-        df = pd.DataFrame(subject_stats)
-        st.dataframe(df, use_container_width=True, hide_index=True)
+        st.dataframe(pd.DataFrame(stats), use_container_width=True, hide_index=True)
     
     with col2:
-        st.markdown("**📈 Performance Chart**")
         fig, ax = plt.subplots(figsize=(8, 4))
-        subs = [s["Subject"] for s in subject_stats]
-        accs = []
-        for s in subject_stats:
-            if s["Accuracy"] != "-":
-                accs.append(float(s["Accuracy"].strip("%")))
-            else:
-                accs.append(0)
-        
-        colors = []
-        for i, s in enumerate(subject_stats):
-            if s["Status"] == "❌":
-                colors.append('#D3D3D3')
-            elif accs[i] >= 70:
-                colors.append('#4CAF50')
-            elif accs[i] >= 50:
-                colors.append('#FF9800')
-            else:
-                colors.append('#F44336')
-        
-        bars = ax.bar(subs, accs, color=colors)
-        ax.axhline(y=50, color='gray', linestyle='--', alpha=0.7, label='Passing')
-        ax.axhline(y=70, color='green', linestyle='--', alpha=0.7, label='Mastery')
-        ax.set_ylabel("Accuracy (%)")
-        ax.set_title("Subject-wise Performance")
-        ax.legend(fontsize=8)
+        subs = [s["Subject"] for s in stats]
+        accs = [float(s["Accuracy"].strip("%")) if s["Accuracy"] != "-" else 0 for s in stats]
+        colors = ['#D3D3D3' if s["Status"]=="❌" else '#4CAF50' if a>=70 else '#FF9800' if a>=50 else '#F44336' for s,a in zip(stats, accs)]
+        ax.bar(subs, accs, color=colors)
+        ax.axhline(y=50, color='gray', linestyle='--')
+        ax.axhline(y=70, color='green', linestyle='--')
         ax.set_ylim(0, 100)
-        plt.xticks(rotation=45, ha='right', fontsize=8)
-        
-        # Add labels
-        for bar, s in zip(bars, subject_stats):
-            if s["Status"] == "✅":
-                height = bar.get_height()
-                ax.text(bar.get_x() + bar.get_width()/2., height, 
-                       s["Accuracy"], ha='center', va='bottom', fontsize=7)
-        
+        plt.xticks(rotation=45, ha='right')
         plt.tight_layout()
         st.pyplot(fig)
     
-    # Summary
-    attempted = [s for s in subject_stats if s["Status"] == "✅"]
-    not_attempted = [s for s in subject_stats if s["Status"] == "❌"]
+    attempted = [s for s in stats if s["Status"]=="✅"]
+    not_att = [s["Subject"] for s in stats if s["Status"]=="❌"]
+    c1,c2,c3 = st.columns(3)
+    c1.metric("Total", len(all_subs))
+    c2.metric("Attempted", len(attempted))
+    c3.metric("Remaining", len(not_att))
     
-    col1, col2, col3 = st.columns(3)
-    col1.metric("Total Subjects", len(all_subjects))
-    col2.metric("Attempted", len(attempted))
-    col3.metric("Remaining", len(not_attempted))
+    if not_att:
+        subjects = ', '.join(not_att[:5]) + (f" and {len(not_att)-5} more" if len(not_att)>5 else "")
+        st.info(f"⚠️ Not attempted: {subjects}")
     
-    if not_attempted:
-        st.info(f"⚠️ Not attempted: {', '.join([s['Subject'] for s in not_attempted[:5]])}")
-        if len(not_attempted) > 5:
-            st.info(f"... and {len(not_attempted) - 5} more")
-    
-    return subject_stats
+    return stats
