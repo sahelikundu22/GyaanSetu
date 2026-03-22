@@ -2,6 +2,10 @@ import streamlit as st
 import sys, os, base64, io
 from pypdf import PdfReader, PdfWriter
 
+# fixing default page
+if not st.session_state.get("logged_in", False):
+    st.warning("Please login to access this page.")
+    st.stop()
 # PATH FIX: Allow finding sidebar.py
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from sidebar import render_sidebar

@@ -31,4 +31,6 @@ def render_sidebar():
         st.divider()
         if st.button("Logout", use_container_width=True):
             st.session_state.logged_in = False
+            st.session_state.name = Student
+            st.session_state.user_class = 6
             st.rerun()

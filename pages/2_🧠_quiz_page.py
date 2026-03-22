@@ -1,6 +1,10 @@
 import streamlit as st
 import sys, os
 
+# fixing default page
+if not st.session_state.get("logged_in", False):
+    st.warning("Please login to access this page.")
+    st.stop()
 # Allow imports from project root
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 

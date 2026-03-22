@@ -4,6 +4,11 @@ from collections import defaultdict
 from datetime import datetime
 import pandas as pd
 
+# fixing default page
+if not st.session_state.get("logged_in", False):
+    st.warning("Please login to access this page.")
+    st.stop()
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from sidebar import render_sidebar
 from database import get_scores_by_user
