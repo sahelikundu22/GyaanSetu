@@ -1,4 +1,5 @@
 import streamlit as st
+import sys, os
 from sidebar import render_sidebar
 
 def dashboard():
@@ -8,9 +9,7 @@ def dashboard():
     if "answers" not in st.session_state:
         st.session_state.answers = {}
 
-  
     render_sidebar()
-
 
     st.title("Dashboard")
     st.write(f"Welcome, {st.session_state.name}!")
