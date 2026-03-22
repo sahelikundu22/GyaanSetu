@@ -1,6 +1,7 @@
 import streamlit as st
 import sys, os, base64, io
 from pypdf import PdfReader, PdfWriter
+from streamlit_pdf_viewer import pdf_viewer
 
 # fixing default page
 if not st.session_state.get("logged_in", False):
@@ -53,10 +54,7 @@ with col1:
 with col2:
     st.markdown("### 📜 Read Online")
     if pdf_path:
-        with open(pdf_path, "rb") as f:
-            b64 = base64.b64encode(f.read()).decode('utf-8')
-        pdf_html = f'<iframe src="data:application/pdf;base64,{b64}" width="100%" height="800px"></iframe>'
-        st.markdown(pdf_html, unsafe_allow_html=True)
+        pdf_viewer(pdf_path)
     else:
         st.error("PDF file not found in folder.")
 

@@ -1,15 +1,16 @@
 import streamlit as st
 from sidebar import render_sidebar
-from pdf_qna_engine.search import search_chunks
-from pdf_qna_engine.llm import ask_model
-from pdf_qna_engine.highlighter import find_highlight_coords
-from streamlit_pdf_viewer import pdf_viewer
-from pdf_qna_engine.processor import extract_text, process_text
 
 # fixing default page
 if not st.session_state.get("logged_in", False):
     st.warning("Please login to access this page.")
     st.stop()
+
+from pdf_qna_engine.search import search_chunks
+from pdf_qna_engine.llm import ask_model
+from pdf_qna_engine.highlighter import find_highlight_coords
+from streamlit_pdf_viewer import pdf_viewer
+from pdf_qna_engine.processor import extract_text, process_text
 
 st.set_page_config(page_title="PDF Q&A", page_icon="📄", layout="wide")
 
