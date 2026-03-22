@@ -1,5 +1,5 @@
 import streamlit as st
-import json
+import json, os
 
 def render_sidebar():
     with st.sidebar:
@@ -7,6 +7,21 @@ def render_sidebar():
         st.write(f"👤 **{st.session_state.get('name', 'Student')}**")
         st.write(f"🎓 **Class {st.session_state.get('user_class', '5')}**")
         st.divider()
+
+        # ---------- 🌐 LANGUAGE SELECTOR ----------
+        if "language" not in st.session_state:
+            st.session_state.language = "English"
+
+        language = st.selectbox(
+            "🌐 Select Language",
+            ["English", "Hindi", "Bengali"],
+            index=["English", "Hindi", "Bengali"].index(st.session_state.language)
+        )
+
+        st.session_state.language = language
+
+        st.divider()
+
 
         try:
             with open('cbse_data.json', 'r', encoding='utf-8') as f:
@@ -31,6 +46,6 @@ def render_sidebar():
         st.divider()
         if st.button("Logout", use_container_width=True):
             st.session_state.logged_in = False
-            st.session_state.name = Student
+            st.session_state.name = "Student"
             st.session_state.user_class = 6
             st.rerun()

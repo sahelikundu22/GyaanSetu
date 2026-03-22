@@ -4,7 +4,6 @@ import streamlit as st
 import json
 import re
 
-
 def generate_ai_quiz(pdf_path, num_q=10):
 
     try:
@@ -25,18 +24,32 @@ def generate_ai_quiz(pdf_path, num_q=10):
 
         client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 
-        prompt = f"""
+        # 🌐 Language selection
+        lang = st.session_state.get("language", "English")
+
+        if lang == "Hindi":
+            lang_prompt = "Generate questions in Hindi."
+        elif lang == "Bengali":
+            lang_prompt = "Generate questions in Bengali."
+        else:
+            lang_prompt = "Generate questions in English."
+
+
+        prompt = f"""{lang_prompt}
         You are an educational quiz generator.
 
         Using the following study material, create {num_q} multiple choice questions.
 
         Context:
         {context}
-
-        Rules:
+        STRICT INSTRUCTIONS:
+        - Generate EXACTLY {num_q} questions
+        - No explanation, no markdown
+        - Use double quotes ONLY
         - Each question must have exactly 4 options
         - Only one correct answer
         - Language should be simple for school students
+        - Return ONLY valid JSON
 
         Return ONLY JSON in this format:
 
@@ -59,17 +72,35 @@ def generate_ai_quiz(pdf_path, num_q=10):
             temperature=0.4
         )
 
-        result = response.choices[0].message.content
+        raw = response.choices[0].message.content
 
-        # Clean JSON
-        result = re.sub(r"```json|```", "", result).strip()
 
-        start = result.find("[")
-        end = result.rfind("]") + 1
+        # Remove markdown
+        clean = re.sub(r"```json|```", "", raw).strip()
 
-        quiz_data = json.loads(result[start:end])
+        # 🔥 Extract each question object safely
+        objects = re.findall(r"\{.*?\}", clean, re.DOTALL)
 
-        return quiz_data
+        quiz = []
+
+        for obj in objects:
+            try:
+                q = json.loads(obj)
+                if "q" in q and "o" in q and "a" in q:
+                    if len(q["o"]) == 4:
+                        quiz.append(q)
+            except:
+                continue
+
+        # 🔥 Ensure exact number of questions
+        if len(quiz) > num_q:
+            quiz = quiz[:num_q]
+
+        if len(quiz) == 0:
+            return {"error": "AI returned invalid quiz format"}
+
+        return quiz
+
 
     except Exception as e:
         return {"error": str(e)}
