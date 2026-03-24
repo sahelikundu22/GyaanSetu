@@ -105,6 +105,6 @@ st.divider()
 subject_stats = render_subject_analysis(subject_wise, chapter_wise, user_class)
 
 st.divider()
-render_pdf_report(username, subject_stats, selected_subject, accuracy, stats, weak, developing)
+render_pdf_report(username, subject_stats, selected_subject, accuracy, stats, chapter_wise)
 
 st.caption(f"Updated: {datetime.now().strftime('%Y-%m-%d %H:%M')}")
