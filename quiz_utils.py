@@ -50,6 +50,8 @@ def generate_ai_quiz(pdf_path, num_q=10):
         - Only one correct answer
         - Language should be simple for school students
         - Return ONLY valid JSON
+        - Each question MUST be separate and complete.
+        - Do NOT merge questions.
 
         Return ONLY JSON in this format:
 
@@ -99,7 +101,47 @@ def generate_ai_quiz(pdf_path, num_q=10):
         if len(quiz) == 0:
             return {"error": "AI returned invalid quiz format"}
 
-        return quiz
+        MAX_RETRIES = 3
+
+        all_questions = []
+
+        for attempt in range(MAX_RETRIES):
+
+            response = client.chat.completions.create(
+                model="llama-3.1-8b-instant",
+                messages=[
+                    {"role": "system", "content": "You create educational quizzes."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.4
+            )
+
+            raw = response.choices[0].message.content
+
+            clean = re.sub(r"```json|```", "", raw).strip()
+
+            objects = re.findall(r"\{.*?\}", clean, re.DOTALL)
+
+            for obj in objects:
+                try:
+                    q = json.loads(obj)
+                    if "q" in q and "o" in q and "a" in q:
+                        if len(q["o"]) == 4:
+                            all_questions.append(q)
+                except:
+                    continue
+
+            # ✅ STOP when enough questions collected
+            if len(all_questions) >= num_q:
+                break
+
+        # ✅ FINAL CUT
+        final_quiz = all_questions[:num_q]
+
+        if len(final_quiz) < num_q:
+            return {"error": "Could not generate enough valid questions"}
+
+        return final_quiz
 
 
     except Exception as e:

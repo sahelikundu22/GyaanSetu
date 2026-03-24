@@ -12,16 +12,12 @@ def render_sidebar():
         if "language" not in st.session_state:
             st.session_state.language = "English"
 
-        language = st.selectbox(
+        st.selectbox(
             "🌐 Select Language",
             ["English", "Hindi", "Bengali"],
-            index=["English", "Hindi", "Bengali"].index(st.session_state.language)
+            key="language"
         )
-
-        st.session_state.language = language
-
         st.divider()
-
 
         try:
             with open('cbse_data.json', 'r', encoding='utf-8') as f:
