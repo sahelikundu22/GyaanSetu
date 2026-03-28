@@ -3,7 +3,7 @@ import requests
 import streamlit as st
 
 GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
-
+MODEL = "llama-3.3-70b-versatile"
 
 def get_api_key() -> str:
     try:
@@ -54,7 +54,7 @@ Context from PDF:
     }
 
     payload = {
-        "model": "llama-3.3-70b-versatile",
+        "model": MODEL,
         "messages": messages,
         "max_tokens": 300,
         "temperature": 0.3,
