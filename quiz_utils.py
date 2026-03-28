@@ -4,7 +4,7 @@ import streamlit as st
 import json
 import re
 
-def generate_ai_quiz(pdf_path, num_q=10):
+def generate_ai_quiz(pdf_path, difficulty="Medium", num_q=10):
 
     try:
         reader = PdfReader(pdf_path)
@@ -24,18 +24,26 @@ def generate_ai_quiz(pdf_path, num_q=10):
 
         client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 
-        # 🌐 Language selection
+        # Difficulty-specific instructions
+        if difficulty == "Easy":
+            diff_prompt = "Generate simple recall-based questions testing basic definitions and facts."
+        elif difficulty == "Hard":
+            diff_prompt = "Generate challenging analytical questions requiring deep understanding and reasoning."
+        else:
+            diff_prompt = "Generate moderate questions testing understanding and application of concepts."
+
+        # Language selection
         lang = st.session_state.get("language", "English")
 
         if lang == "Hindi":
-            lang_prompt = "Generate questions in Hindi."
+            lang_prompt = "in Hindi."
         elif lang == "Bengali":
-            lang_prompt = "Generate questions in Bengali."
+            lang_prompt = "in Bengali."
         else:
-            lang_prompt = "Generate questions in English."
+            lang_prompt = "in English."
 
 
-        prompt = f"""{lang_prompt}
+        prompt = f"""{diff_prompt}{lang_prompt}
         You are an educational quiz generator.
 
         Using the following study material, create {num_q} multiple choice questions.
