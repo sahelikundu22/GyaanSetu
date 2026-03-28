@@ -1,8 +1,17 @@
+# pdf_qna_engine/llm.py
 from typing import List, Tuple
 import requests
+import os
 
-OLLAMA_URL = "http://localhost:11434/api/generate"
-MODEL = "cas/nous-hermes-2-mistral-7b-dpo"
+GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
+MODEL = "llama-3.3-70b-versatile"
+
+def get_api_key() -> str:
+    """Read API key from environment variable."""
+    key = os.getenv("GROQ_API_KEY")
+    if not key:
+        raise ValueError("Set your GROQ_API_KEY in environment variables.")
+    return key
 
 def ask_model(
     question: str,
@@ -10,61 +19,55 @@ def ask_model(
     chat_history: List[dict] = None,
     full_text: str = None,
 ) -> Tuple[str, float]:
+    """
+    Ask the Groq LLaMA model a question using the provided context and chat history.
+    Returns answer and confidence.
+    """
+    api_key = get_api_key()
 
-    # Choose context (LIMITED)
+    # Build context (use full_text for small PDFs, otherwise best 2 chunks)
     MAX_CHARS = 12000
     if full_text and len(full_text) <= MAX_CHARS:
         context = full_text
     else:
-        context = "\n\n".join(contexts[:2])  # reduced from 5 → 2
+        context = "\n\n".join(contexts[:2])  # top 2 chunks
 
-    # Build history text
-    history_text = ""
+    # Build messages for conversation
+    messages = [
+        {"role": "system", "content": f"You are a helpful assistant answering questions based on the PDF content below.\n\nContext:\n{context}"}
+    ]
+
     if chat_history:
         for entry in chat_history[-4:]:
-            history_text += f"User: {entry['question']}\nAssistant: {entry['answer']}\n"
+            messages.append({"role": "user", "content": entry["question"]})
+            messages.append({"role": "assistant", "content": entry["answer"]})
 
-    # Build prompt (Ollama style)
-    prompt = f"""
-You are a helpful assistant answering questions based on a PDF document.
-Use only the information provided in the context.
-Answer in 2-4 sentences.
-If not found, say: "The document does not contain this information."
+    # Add the current question
+    messages.append({"role": "user", "content": question})
 
-Context:
-{context}
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+    }
 
-Conversation History:
-{history_text}
-
-Question:
-{question}
-"""
+    payload = {
+        "model": MODEL,
+        "messages": messages,
+        "max_tokens": 300,
+        "temperature": 0.3,
+    }
 
     try:
-        response = requests.post(
-            OLLAMA_URL,
-            json={
-                "model": MODEL,
-                "prompt": prompt,
-                "stream": False,
-                "temperature": 0.2,
-                "num_predict": 150
-            },
-            timeout=180
-        )
+        response = requests.post(GROQ_API_URL, headers=headers, json=payload, timeout=180)
+        response.raise_for_status()
+        data = response.json()
 
-        if response.status_code == 200:
-            data = response.json()
-            answer = data.get("response", "").strip()
-            confidence = 0.0 if "does not contain" in answer.lower() else 90.0
-            return answer if answer else "No answer generated.", confidence
+        # Extract answer
+        answer = data["choices"][0]["message"]["content"].strip()
+        confidence = 0.0 if "does not contain" in answer.lower() else 90.0
+        return answer if answer else "No answer generated.", confidence
 
-        return f"API error {response.status_code}: {response.text}", 0.0
-
-    except requests.exceptions.ConnectionError:
-        return "Ollama is not running. Run: ollama run phi3", 0.0
     except requests.exceptions.Timeout:
-        return "Request timed out. Reduce context size.", 0.0
-    except Exception as e:
-        return f"Error: {str(e)}", 0.0
+        return "Request timed out. Try reducing context size.", 0.0
+    except requests.exceptions.RequestException as e:
+        return f"API error: {str(e)}", 0.0
