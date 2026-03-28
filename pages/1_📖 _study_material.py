@@ -1,5 +1,5 @@
 import streamlit as st
-import sys, os, base64, io
+import sys, os, io
 from pypdf import PdfReader, PdfWriter
 from streamlit_pdf_viewer import pdf_viewer
 
