@@ -9,3 +9,4 @@ streamlit-pdf-viewer
 pdfplumber
 PyPDF2
 fpdf
+faiss-cpu
