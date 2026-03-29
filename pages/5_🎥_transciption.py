@@ -70,7 +70,9 @@ def fetch_transcript(video_id: str):
         return entries, detected_lang
 
     except Exception as e:
+        import traceback
         st.error(f"❌ Could not fetch transcript: {e}")
+        st.code(traceback.format_exc())
         return None, None
 
 
