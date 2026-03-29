@@ -20,7 +20,6 @@ render_sidebar()
 st.title("🤖 AI Quiz Generator")
 st.write("Select the subject and chapter from sidebar to generate quiz.")
 
-# ---------- CSS FOR QUIZ UI ----------
 st.markdown("""
 <style>
 
@@ -55,17 +54,37 @@ st.markdown("""
 subject = st.session_state.get("selected_subject", "")
 chapter = st.session_state.get("selected_chapter", "")
 
+lang = st.session_state.get("language", "English")
 pdf_path = None
 
-# Find PDF same way as study_material page
-sub_folder = os.path.join("study_material", subject)
-
-if os.path.exists(sub_folder):
+# 1. Try language-specific folder first: study_material/{language}/{subject}/
+sub_folder_lang = os.path.join("study_material", lang, subject)
+if os.path.exists(sub_folder_lang):
     target = chapter.lower().replace(" ", "")
-    for f in os.listdir(sub_folder):
-        if f.lower().replace(" ", "").startswith(target):
-            pdf_path = os.path.join(sub_folder, f)
+    for f in os.listdir(sub_folder_lang):
+        if f.lower().replace(" ", "").startswith(target) and f.lower().endswith(".pdf"):
+            pdf_path = os.path.join(sub_folder_lang, f)
             break
+
+# 2. Fallback to English folder
+if not pdf_path:
+    sub_folder_english = os.path.join("study_material", "English", subject)
+    if os.path.exists(sub_folder_english):
+        target = chapter.lower().replace(" ", "")
+        for f in os.listdir(sub_folder_english):
+            if f.lower().replace(" ", "").startswith(target) and f.lower().endswith(".pdf"):
+                pdf_path = os.path.join(sub_folder_english, f)
+                break
+
+# 3. Fallback to legacy flat structure: study_material/{subject}/
+if not pdf_path:
+    sub_folder = os.path.join("study_material", subject)
+    if os.path.exists(sub_folder):
+        target = chapter.lower().replace(" ", "")
+        for f in os.listdir(sub_folder):
+            if f.lower().replace(" ", "").startswith(target) and f.lower().endswith(".pdf"):
+                pdf_path = os.path.join(sub_folder, f)
+                break
 
 
 if st.button("🧠 Generate Quiz", use_container_width=True):

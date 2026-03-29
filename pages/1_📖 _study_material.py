@@ -148,4 +148,4 @@ with col2:
 
 st.divider()
 st.markdown(f"{t['key_points']} {ch}")
-st.write("- Watch the video. \n- Read the notes. \n- Complete the quiz.")
+st.write(t["points"])

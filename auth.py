@@ -162,22 +162,67 @@ def signup():
 # @st.dialog("Login")
 
 def login():
-    email = st.text_input("Email")
+    if "login_otp_sent" not in st.session_state:
+        st.session_state.login_otp_sent = False
+    if "login_otp" not in st.session_state:
+        st.session_state.login_otp = None
+    if "login_email" not in st.session_state:
+        st.session_state.login_email = ""
 
-    if st.button("Login"):
-        user = get_user_by_email(email)
+    email = st.text_input("Email", key="login_email_input")
 
-        if user:
-            st.session_state.logged_in = True
-            st.session_state.name = user[1]
-            st.session_state.email = user[2]
-            st.session_state.user_class = user[3]
-            st.session_state.points = user[4]
-            st.success("Login successful")
-            st.rerun()
+    if not st.session_state.login_otp_sent:
+        if st.button("Send OTP", key="login_send_otp"):
+            email_pattern = r"^[\w\.-]+@[\w.\.-]+\.\w+$"
+            if not re.match(email_pattern, email):
+                st.error("Please enter a valid email address")
+                return
 
-        else:
-            st.error("User not found")
+            user = get_user_by_email(email)
+            if not user:
+                st.error("User not found. Please sign up first.")
+                return
+
+            otp = random.randint(100000, 999999)
+            st.session_state.login_otp = otp
+            st.session_state.login_email = email
+
+            try:
+                send_otp_email(email, otp)
+                st.session_state.login_otp_sent = True
+                st.success("OTP sent to your email")
+            except Exception as e:
+                st.error("Failed to send OTP")
+                st.write(e)
+
+    if st.session_state.login_otp_sent:
+        user_otp = st.number_input(
+            "Enter OTP",
+            min_value=100000,
+            max_value=999999,
+            format="%d",
+            key="login_otp_input"
+        )
+
+        if st.button("Verify & Login", key="login_verify_otp"):
+            if user_otp == st.session_state.login_otp:
+                user = get_user_by_email(st.session_state.login_email)
+                if user:
+                    st.session_state.logged_in = True
+                    st.session_state.name = user[1]
+                    st.session_state.email = user[2]
+                    st.session_state.user_class = user[3]
+                    st.session_state.points = user[4]
+                    # Reset login OTP state
+                    st.session_state.login_otp_sent = False
+                    st.session_state.login_otp = None
+                    st.session_state.login_email = ""
+                    st.success("Login successful")
+                    st.rerun()
+                else:
+                    st.error("User not found")
+            else:
+                st.error("Invalid OTP")
 
 
 
