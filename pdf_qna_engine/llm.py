@@ -1,17 +1,17 @@
+# pdf_qna_engine/llm.py
 from typing import List, Tuple
 import requests
-import streamlit as st
+import os
 
 GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
 MODEL = "llama-3.3-70b-versatile"
 
 def get_api_key() -> str:
-    try:
-        return st.secrets["GROQ_API_KEY"]
-    except Exception:
-        st.error("❌ GROQ_API_KEY not found in .streamlit/secrets.toml")
-        st.stop()
-
+    """Read API key from environment variable."""
+    key = os.getenv("GROQ_API_KEY")
+    if not key:
+        raise ValueError("Set your GROQ_API_KEY in environment variables.")
+    return key
 
 def ask_model(
     question: str,
@@ -19,33 +19,30 @@ def ask_model(
     chat_history: List[dict] = None,
     full_text: str = None,
 ) -> Tuple[str, float]:
-
+    """
+    Ask the Groq LLaMA model a question using the provided context and chat history.
+    Returns answer and confidence.
+    """
     api_key = get_api_key()
 
-    # Use full text for small PDFs, chunks for large ones
+    # Build context (use full_text for small PDFs, otherwise best 2 chunks)
     MAX_CHARS = 12000
     if full_text and len(full_text) <= MAX_CHARS:
         context = full_text
     else:
-        context = "\n\n".join(contexts[:5])
+        context = "\n\n".join(contexts[:2])  # top 2 chunks
 
-    system_prompt = f"""You are a helpful assistant answering questions based on a PDF document.
-Use only the information provided in the context below.
-Give a clear, complete, and accurate answer in 2-4 sentences.
-Include relevant details from the context.
-If the answer is not in the context, say "The document does not contain this information."
-Remember the conversation history and use it to understand follow-up questions.
-
-Context from PDF:
-{context}"""
-
-    messages = [{"role": "system", "content": system_prompt}]
+    # Build messages for conversation
+    messages = [
+        {"role": "system", "content": f"You are a helpful assistant answering questions based on the PDF content below.\n\nContext:\n{context}"}
+    ]
 
     if chat_history:
-        for entry in chat_history[-6:]:
-            messages.append({"role": "user",      "content": entry["question"]})
-            messages.append({"role": "assistant",  "content": entry["answer"]})
+        for entry in chat_history[-4:]:
+            messages.append({"role": "user", "content": entry["question"]})
+            messages.append({"role": "assistant", "content": entry["answer"]})
 
+    # Add the current question
     messages.append({"role": "user", "content": question})
 
     headers = {
@@ -60,11 +57,17 @@ Context from PDF:
         "temperature": 0.3,
     }
 
-    response = requests.post(GROQ_API_URL, headers=headers, json=payload)
-    response.raise_for_status()
+    try:
+        response = requests.post(GROQ_API_URL, headers=headers, json=payload, timeout=180)
+        response.raise_for_status()
+        data = response.json()
 
-    data       = response.json()
-    answer     = data["choices"][0]["message"]["content"].strip()
-    confidence = 0.0 if "does not contain" in answer.lower() else 95.0
+        # Extract answer
+        answer = data["choices"][0]["message"]["content"].strip()
+        confidence = 0.0 if "does not contain" in answer.lower() else 90.0
+        return answer if answer else "No answer generated.", confidence
 
-    return answer, confidence
+    except requests.exceptions.Timeout:
+        return "Request timed out. Try reducing context size.", 0.0
+    except requests.exceptions.RequestException as e:
+        return f"API error: {str(e)}", 0.0

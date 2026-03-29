@@ -6,7 +6,7 @@ if not st.session_state.get("logged_in", False):
     st.warning("Please login to access this page.")
     st.stop()
 
-from pdf_qna_engine.search import search_chunks
+from pdf_qna_engine.search import search_chunks, build_faiss_index
 from pdf_qna_engine.llm import ask_model
 from pdf_qna_engine.highlighter import find_highlight_coords
 from streamlit_pdf_viewer import pdf_viewer
@@ -78,9 +78,10 @@ if uploaded_file:
             st.session_state.highlights   = None
 
             with st.spinner("Processing PDF..."):
-                raw_text           = extract_text(uploaded_file)
+                raw_text = extract_text(uploaded_file)
                 chunks, embeddings = process_text(raw_text)
 
+            build_faiss_index(chunks, embeddings)
             st.session_state.raw_text     = raw_text
             st.session_state.chunks       = chunks
             st.session_state.embeddings   = embeddings
@@ -115,11 +116,7 @@ if uploaded_file:
                 st.warning("PDF is still processing. Please wait.")
             else:
                 with st.spinner("Thinking..."):
-                    results, scores = search_chunks(
-                        question,
-                        st.session_state.chunks,
-                        st.session_state.embeddings,
-                    )
+                    results, scores = search_chunks(question, top_k=2)
                     answer, confidence = ask_model(
                         question,
                         results,
