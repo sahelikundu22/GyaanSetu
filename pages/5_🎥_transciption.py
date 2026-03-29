@@ -1,7 +1,7 @@
 import streamlit as st
 import sys, os, re, requests
 
-# fixing default page
+# Youtube Video Transcription Page
 if not st.session_state.get("logged_in", False):
     st.warning("Please login to access this page.")
     st.stop()
@@ -16,7 +16,6 @@ st.title("🎥 YouTube Transcription Tool")
 st.write("Paste a YouTube link to generate transcript and learning content.")
 
 
-# ---------- HELPER FUNCTIONS ----------
 
 def extract_video_id(url: str):
     """Extract YouTube video ID from various URL formats."""

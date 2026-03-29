@@ -1,7 +1,7 @@
 import streamlit as st
 from sidebar import render_sidebar
 
-# fixing default page
+# PDF Q&A page (Chatbot)
 if not st.session_state.get("logged_in", False):
     st.warning("Please login to access this page.")
     st.stop()

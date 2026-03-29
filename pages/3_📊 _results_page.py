@@ -4,7 +4,7 @@ from collections import defaultdict
 from datetime import datetime
 import pandas as pd
 
-# fixing default page
+# Result page (Student Report)
 if not st.session_state.get("logged_in", False):
     st.warning("Please login to access this page.")
     st.stop()

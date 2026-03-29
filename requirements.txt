@@ -10,3 +10,4 @@ pdfplumber
 PyPDF2
 fpdf
 youtube-transcript-api
+deep_translator

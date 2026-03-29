@@ -3,7 +3,7 @@ import sys, os, io
 from pypdf import PdfReader, PdfWriter
 from streamlit_pdf_viewer import pdf_viewer
 
-# fixing default page
+# Study material page
 if not st.session_state.get("logged_in", False):
     st.warning("Please login to access this page.")
     st.stop()
