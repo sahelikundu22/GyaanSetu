@@ -1,19 +1,22 @@
 # 📚 GyaanSetu  
-### Connecting Ambition with Education
+### Connecting Ambition with Education  
 
-GyaanSetu is an AI-powered learning platform designed for school students. It combines study material, AI-generated quizzes, performance analytics, and a PDF question-answering assistant into a single Streamlit web application.
+Live App: https://gyaansetu.streamlit.app  
 
-The platform is data-driven — curriculum, subjects, and chapters are controlled via structured JSON input and study material folders. While it currently uses CBSE-based content, the system is flexible and can be adapted to any educational board by simply modifying the input data.
+GyaanSetu is an AI-powered learning platform designed for school students. It combines study material, AI-generated quizzes, performance analytics, a PDF question-answering assistant, and a YouTube transcription tool into a single Streamlit web application.
+
+The platform is data-driven — curriculum, subjects, and chapters are controlled via structured JSON input and study material folders. While it currently uses CBSE-based content, the system is flexible and can be adapted to any educational board by modifying the input data.
 
 ---
 
 ## 🚀 Features
 
 - 🔐 OTP-based authentication (Gmail SMTP, passwordless login)  
-- 📖 Study material with YouTube lessons and inline PDF viewer  
+- 📖 Study material with YouTube lessons, inline PDF viewer, and transcript support  
 - 🤖 AI quiz generator (10 MCQs from PDFs using LLaMA via Groq)  
 - 📊 Performance dashboard with charts, trends, and PDF reports  
 - 🔍 PDF Q&A with semantic search and highlighted answers  
+- 🎥 YouTube Transcription Tool (transcript extraction, cleanup, translation, and study-guide generation)  
 - 🔄 Easily adaptable to any board by changing curriculum JSON and PDFs  
 
 ---
@@ -32,7 +35,8 @@ GyaanSetu/
 │   ├── study_material.py
 │   ├── quiz.py
 │   ├── performance.py
-│   └── pdf_qna.py
+│   ├── pdf_qna.py
+│   └── youtube_tool.py
 ├── pdf_qna_engine/
 │   ├── models.py
 │   ├── search.py
@@ -55,6 +59,7 @@ GyaanSetu/
 - **Data & Charts:** pandas, matplotlib, numpy  
 - **Database:** SQLite3  
 - **Email:** smtplib (Gmail SMTP)  
+- **YouTube Processing:** transcript APIs + LLM-based processing  
 
 ---
 
@@ -110,10 +115,11 @@ streamlit run app.py
 1. Sign up using email OTP  
 2. Login with your email  
 3. Select subject and chapter from sidebar  
-4. Study using videos and PDFs  
+4. Study using videos, PDFs, and transcripts  
 5. Generate and attempt quizzes  
 6. Track performance in dashboard  
 7. Upload PDFs and ask questions  
+8. Use YouTube transcription tool for summaries, translation, and study guides  
 
 ---
 
@@ -121,7 +127,7 @@ streamlit run app.py
 
 - Do not commit `.streamlit/secrets.toml`  
 - Database is auto-created on first run  
-- Internet required for AI features and email OTP  
+- Internet required for AI features, email OTP, and YouTube transcription  
 - Study material PDFs must be added manually  
 
 ---
@@ -136,4 +142,4 @@ Developed during **Spring Internship 2026**
 
 ## 📌 Summary
 
-GyaanSetu is a flexible, AI-driven learning platform where the curriculum is fully configurable through input data, making it adaptable to different education boards and use cases.
+GyaanSetu is a flexible, AI-driven learning platform where the curriculum is fully configurable through input data. With the addition of a PDF Q&A chatbot and YouTube transcription tool, it enables interactive, query-driven learning and content understanding across multiple formats.

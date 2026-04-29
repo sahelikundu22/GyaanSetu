@@ -12,3 +12,4 @@ fpdf
 youtube-transcript-api
 deep_translator
 faiss-cpu
+pypdf
