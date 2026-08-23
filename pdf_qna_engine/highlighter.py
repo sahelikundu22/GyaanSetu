@@ -11,26 +11,43 @@ def normalize(text: str) -> str:
     return text
 
 
-def find_highlight_coords(pdf_bytes: bytes, answer: str) -> Optional[List[dict]]:
+def find_highlight_coords(pdf_bytes: bytes, answer: str, contexts: List[str] = None) -> Optional[List[dict]]:
     if not answer or len(answer.strip()) < 3:
         return None
 
-    # Build progressively shorter candidates to match
-    candidates = []
-    sentences  = [s.strip() for s in answer.split(".") if s.strip()]
+    # Prefer searching using the retrieved source chunks (verbatim from the PDF)
+    # over the LLM's paraphrased answer, since the answer often won't match exactly.
+    search_source = " ".join(contexts) if contexts else answer
 
-    if len(sentences) >= 2:
-        candidates.append(" ".join(sentences[:2]))
-    if sentences:
-        candidates.append(sentences[0])
+    answer_words = set(normalize(answer).split())
+
+    # From the source chunk(s), find the sentence(s) with the most word-overlap
+    # with the answer — this approximates "what part of the source was actually used".
+    source_sentences = [s.strip() for s in re.split(r"[.\n]", search_source) if s.strip()]
+
+    scored = []
+    for sent in source_sentences:
+        sent_words = set(normalize(sent).split())
+        if not sent_words:
+            continue
+        overlap = len(sent_words & answer_words) / len(sent_words)
+        scored.append((overlap, sent))
+
+    scored.sort(key=lambda x: x[0], reverse=True)
+
+    candidates = [s for _, s in scored[:3] if s]
+
+    # Fallback to old behavior if no context provided or no good overlap found
+    if not candidates:
+        sentences = [s.strip() for s in answer.split(".") if s.strip()]
+        if len(sentences) >= 2:
+            candidates.append(" ".join(sentences[:2]))
+        if sentences:
+            candidates.append(sentences[0])
 
     first_10 = " ".join(answer.split()[:10])
     if first_10 not in candidates:
         candidates.append(first_10)
-
-    first_6 = " ".join(answer.split()[:6])
-    if first_6 not in candidates:
-        candidates.append(first_6)
 
     with pdfplumber.open(io.BytesIO(pdf_bytes)) as pdf:
         for search_text in candidates:

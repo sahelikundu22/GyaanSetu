@@ -123,7 +123,7 @@ if uploaded_file:
                         chat_history=st.session_state.chat_history,
                         full_text=st.session_state.get("raw_text"),
                     )
-                    highlights = find_highlight_coords(pdf_bytes, answer)
+                    highlights = find_highlight_coords(pdf_bytes, answer, contexts=results)
 
                 st.session_state.highlights = highlights
                 st.session_state.chat_history.append({
