@@ -1,10 +1,10 @@
 import streamlit as st
 from sidebar import render_sidebar
 
-# PDF Q&A page (Chatbot)
-if not st.session_state.get("logged_in", False):
-    st.warning("Please login to access this page.")
-    st.stop()
+# # PDF Q&A page (Chatbot)
+# if not st.session_state.get("logged_in", False):
+#     st.warning("Please login to access this page.")
+#     st.stop()
 
 from pdf_qna_engine.search import search_chunks, build_faiss_index
 from pdf_qna_engine.llm import ask_model
